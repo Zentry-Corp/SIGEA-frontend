@@ -10,9 +10,11 @@ export const authApi = {
     });
 
     if (response.data.status) {
-      const { token, user } = response.data.extradata;
-      sessionStorage.setItem('sigea_token', token);
-      sessionStorage.setItem('sigea_user', JSON.stringify(user));
+      const { accessToken, usuario } = response.data.extraData;
+      sessionStorage.setItem('sigea_token', accessToken);
+      if (usuario) {
+      sessionStorage.setItem('sigea_user', JSON.stringify(usuario));
+    }
     }
 
     return response.data;

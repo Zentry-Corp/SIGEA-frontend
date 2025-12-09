@@ -36,15 +36,19 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('❌ Response error:', error.response?.status, error.config?.url);
-    console.error('❌ Error data:', error.response?.data);
-    
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const data = error.response?.data;
+    const url = error.config?.url;
+
+    console.error('❌ Response error:', status || 'sin status', url || 'URL desconocida');
+    console.error('❌ Error data:', data || error.message);
+
+    if (status === 401) {
       sessionStorage.removeItem('sigea_token');
       sessionStorage.removeItem('sigea_user');
       window.location.href = '/';
     }
-    
+
     return Promise.reject(error);
   }
 );

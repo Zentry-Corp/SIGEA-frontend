@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { Modal } from '../../../shared/ui/components/modal';
 import { useLogin } from '../hooks/useLogin';
+import { parseJwt } from "../../../shared/utils/jwtUtils";
+import { useNavigate } from 'react-router-dom';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +16,7 @@ const LoginModal = ({ isOpen, onClose }) => {
   });
 
   const { login, loading, error } = useLogin();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     setFormData({
@@ -24,24 +27,71 @@ const LoginModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const result = await login({
-      email: formData.email,
-      password: formData.password,
-      rememberMe,
+    
+    console.log('🚀 [LOGIN] Iniciando proceso de login...');
+    
+    const result = await login({ 
+      email: formData.email, 
+      password: formData.password, 
+      rememberMe 
     });
 
-    if (result.success) {
-      // Redirigir según el rol que venga del backend
-      const user = result.data.extradata?.user;
-      const roleRoutes = {
-        participante: '/participante/dashboard',
-        organizador: '/organizador/dashboard',
-        admin: '/admin/dashboard',
-      };
+    console.log('📊 [LOGIN] Result completo:', result);
 
-      const redirectTo = roleRoutes[user?.rol] || '/';
-      window.location.href = redirectTo;
+    if (result.success) {
+      console.log('✅ [LOGIN] Login exitoso, procesando redirección...');
+      
+      // ✅ Obtener token del sessionStorage
+      const token = sessionStorage.getItem('sigea_token');
+      console.log('🎫 [LOGIN] Token obtenido:', token ? 'SÍ' : 'NO');
+      
+      if (token) {
+        // ✅ Decodificar JWT para obtener el payload
+        const payload = parseJwt(token);
+        console.log('📦 [LOGIN] Payload decodificado:', payload);
+        
+        // ✅ Extraer rol del payload
+        // El rol puede venir como 'rol' directo o dentro de 'authorities'
+        const rol = payload?.roles?.[0] || payload?.rol || payload?.authorities?.[0] || '';
+        console.log('🎭 [LOGIN] Rol extraído:', rol);
+        console.log('🎭 [LOGIN] Rol en mayúsculas:', rol.toUpperCase());
+        
+        // Cerrar modal
+        console.log('🚪 [LOGIN] Cerrando modal...');
+        onClose();
+        
+        // Pequeño delay para asegurar que el modal se cierre
+        setTimeout(() => {
+          console.log('🧭 [LOGIN] Navegando según rol...');
+          
+          switch (rol.toUpperCase()) {
+            case 'ADMINISTRADOR':
+              console.log('➡️ [LOGIN] Redirigiendo a /admin/dashboard');
+              navigate('/admin/dashboard');
+              break;
+            case 'ORGANIZADOR':
+              console.log('➡️ [LOGIN] Redirigiendo a /organizador/dashboard');
+              navigate('/organizador/dashboard');
+              break;
+            case 'PARTICIPANTE':
+              console.log('➡️ [LOGIN] Redirigiendo a /participante/dashboard');
+              navigate('/participante/dashboard');
+              break;
+            default:
+              console.warn('⚠️ [LOGIN] Rol no reconocido:', rol);
+              alert(`Rol no reconocido en el token: ${rol}\n\nToken payload: ${JSON.stringify(payload, null, 2)}`);
+              navigate('/');
+              break;
+          }
+        }, 100);
+        
+      } else {
+        console.error('❌ [LOGIN] No se encontró token en sessionStorage');
+        alert('Error: No se pudo obtener el token de autenticación');
+      }
+    } else {
+      console.error('❌ [LOGIN] Login falló:', result.error);
+      alert(`❌ ${result.error}`);
     }
   };
 
