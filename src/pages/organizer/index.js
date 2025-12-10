@@ -1,2 +1,2 @@
-export { OrganizerDashboardPage } from './OrganizerDashboardPage';
+export { default as OrganizerDashboardPage } from './OrganizerDashboardPage';
 export { default } from './OrganizerDashboardPage';

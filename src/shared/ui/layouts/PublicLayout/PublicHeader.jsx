@@ -29,8 +29,7 @@ const PublicHeader = () => {
           <Logo>
             <LogoIcon src="/logo-sigea.png" alt="SIGEA" />
             <LogoTextWrapper>
-              <LogoTitle>SIGEA</LogoTitle>
-              <LogoSubtitle>Sistema de Gestión de Eventos Académicos</LogoSubtitle>
+              <LogoTitle>Sistema de Gestión de Eventos Académicos</LogoTitle>
             </LogoTextWrapper>
           </Logo>
 
@@ -128,22 +127,26 @@ const HeaderContent = styled.div`
 const Logo = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   cursor: pointer;
   flex-shrink: 0;
+  padding-top: 2px;  /* Ajuste fino para alinearlo visualmente */
 `;
+
 
 const LogoIcon = styled.img`
-  width: 45px;
-  height: 45px;
-  border-radius: 10px;
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
   object-fit: contain;
+  transform: translateY(1px); /* Alineación fina con el texto */
 
   @media (max-width: 768px) {
-    width: 40px;
-    height: 40px;
+    width: 46px;
+    height: 46px;
   }
 `;
+
 
 const LogoTextWrapper = styled.div`
   display: flex;
@@ -156,31 +159,25 @@ const LogoTextWrapper = styled.div`
 `;
 
 const LogoTitle = styled.span`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1;
-
-  @media (max-width: 968px) {
-    font-size: 1.25rem;
-  }
-`;
-
-const LogoSubtitle = styled.span`
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: #666;
-  letter-spacing: 0.3px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2a2a2a;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
+  opacity: 0.9;
+  white-space: nowrap;
+  transform: translateY(1px); /* Alineación perfecta */
 
   @media (max-width: 1200px) {
-    font-size: 0.6rem;
+    font-size: 0.75rem;
   }
 
   @media (max-width: 968px) {
     display: none;
   }
 `;
+
+
 
 const DesktopNav = styled.nav`
   display: flex;

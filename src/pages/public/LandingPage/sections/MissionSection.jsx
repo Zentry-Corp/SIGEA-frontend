@@ -31,7 +31,7 @@ const MissionSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <SectionTitle>Nuestra misión</SectionTitle>
+          <SectionTitle>Nuestra <Highlight>misión</Highlight></SectionTitle>
           <SectionDescription>
             Transformar la experiencia académica de los estudiantes y profesionales de la UNAS, 
             simplificando la inscripción a eventos educativos y proporcionando certificados digitales 
@@ -62,7 +62,7 @@ const MissionSection = () => {
 
 const SectionContainer = styled.section`
   padding: 100px 20px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
   overflow: hidden;
 
@@ -73,7 +73,7 @@ const SectionContainer = styled.section`
     left: -10%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(79, 124, 255, 0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(79, 124, 255, 0.04) 0%, transparent 70%);
     border-radius: 50%;
   }
 
@@ -84,7 +84,7 @@ const SectionContainer = styled.section`
     right: -15%;
     width: 700px;
     height: 700px;
-    background: radial-gradient(circle, rgba(79, 124, 255, 0.05) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(79, 124, 255, 0.03) 0%, transparent 70%);
     border-radius: 50%;
   }
 
@@ -112,20 +112,31 @@ const SectionHeader = styled(motion.div)`
 const SectionTitle = styled.h2`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1a1a2e;
   margin: 0 0 24px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 
   @media (max-width: 768px) {
     font-size: 2rem;
   }
 `;
 
+const Highlight = styled.span`
+  color: #4F7CFF;
+  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
 const SectionDescription = styled.p`
-  font-size: 1.125rem;
-  color: #666;
+  font-size: 1.0625rem;
+  color: #64748b;
   line-height: 1.7;
   margin: 0 auto;
   max-width: 800px;
+  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 1rem;
@@ -135,7 +146,7 @@ const SectionDescription = styled.p`
 const FeaturesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  gap: 32px;
 
   @media (max-width: 968px) {
     grid-template-columns: 1fr;
@@ -144,21 +155,22 @@ const FeaturesGrid = styled.div`
 `;
 
 const FeatureCard = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 40px 32px;
+  border-radius: 20px;
+  padding: 36px 30px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(79, 124, 255, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 8px 24px rgba(79, 124, 255, 0.15);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 8px 24px rgba(79, 124, 255, 0.12);
     border-color: rgba(79, 124, 255, 0.2);
   }
 `;
@@ -171,17 +183,19 @@ const IconWrapper = styled.div`
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #1a1a2e;
   margin: 0;
+  line-height: 1.3;
 `;
 
 const FeatureDescription = styled.p`
-  font-size: 0.95rem;
-  color: #666;
-  line-height: 1.5;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.6;
   margin: 0;
+  font-weight: 400;
 `;
 
 export default MissionSection;

@@ -12,9 +12,6 @@ export const apiClient = axios.create({
 // Interceptor de Request
 apiClient.interceptors.request.use(
   (config) => {
-    console.log('📤 Request:', config.method?.toUpperCase(), config.url);
-    console.log('📤 Data:', config.data);
-    console.log('📤 Params:', config.params);
     
     const token = sessionStorage.getItem('sigea_token');
     if (token) {
@@ -31,8 +28,6 @@ apiClient.interceptors.request.use(
 // Interceptor de Response
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('📥 Response:', response.status, response.config.url);
-    console.log('📥 Data:', response.data);
     return response;
   },
   (error) => {

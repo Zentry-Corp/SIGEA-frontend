@@ -8,6 +8,9 @@ import { PublicLayout } from '../../shared/ui/layouts';
 import { LoginModal } from '../../features/auth';
 import EmailVerificationModal from '../../features/auth/ui/EmailVerificationModal';
 import { useNavigate } from 'react-router-dom';
+import { AlertError } from "@/shared/ui/components/Alert";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +21,12 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+    const { login } = useAuth();
+   const [errorModal, setErrorModal] = useState({
+  open: false,
+  message: "",
+});
+
   const paisesLatam = [
     { label: '🇵🇪 Perú (+51)', value: '+51' },
     { label: '🇲🇽 México (+52)', value: '+52' },
@@ -49,107 +58,137 @@ const RegisterPage = () => {
     setError('');
   };
 
-  const handlePhoneChange = (value, data) => {
-    setFormData({
-      ...formData,
-      telefono: value.replace(data.dialCode, ''), // quita código del número
-      extensionTelefonica: `+${data.dialCode}`,   // guarda el +51, +52, etc
-    });
-  };
-
 
   // ✅ Cuando la verificación es exitosa
-  const handleVerificationSuccess = async () => {
-    console.log('✅ Verificación exitosa, registrando usuario...');
-    setLoading(true);
+ const handleVerificationSuccess = async () => {
+  console.log('✅ Verificación exitosa, registrando usuario...');
+  setLoading(true);
 
-    try {
-      const registrationData = {
-        nombres: formData.nombres.trim(),
-        apellidos: formData.apellidos.trim(),
-        correo: formData.correo.trim().toLowerCase(),
-        password: formData.password,
-        dni: formData.dni,
-        telefono: formData.telefono,
-        extensionTelefonica: formData.extensionTelefonica,
-      };
+  try {
+    const registrationData = {
+      nombres: formData.nombres.trim(),
+      apellidos: formData.apellidos.trim(),
+      correo: formData.correo.trim().toLowerCase(),
+      password: formData.password,
+      dni: formData.dni,
+      telefono: formData.telefono,
+      extensionTelefonica: formData.extensionTelefonica,
+    };
 
-      console.log('📤 Registrando usuario:', registrationData);
+    console.log('📤 Registrando usuario:', registrationData);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/usuarios/participante/registrar`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(registrationData),
-        }
-      );
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/usuarios/participante/registrar`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(registrationData),
+      }
+    );
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
+    if (!response.ok) {
+      if (response.status === 409) {
+        throw new Error('⚠️ El correo ya está registrado. Intenta iniciar sesión.');
+      } else {
         throw new Error(data.message || 'Error al registrar');
       }
-
-      console.log('✅ Usuario registrado exitosamente:', data);
-
-      // Cerrar modal de verificación
-      setShowVerificationModal(false);
-
-      // Mostrar éxito
-      alert('🎉 ¡Cuenta creada exitosamente! Ya puedes iniciar sesión.');
-
-      // Reset form
-      setFormData({
-        nombres: '',
-        apellidos: '',
-        dni: '',
-        correo: '',
-        telefono: '',
-        password: '',
-        confirmPassword: '',
-      });
-
-      // Abrir modal de login
-      setTimeout(() => {
-        setIsLoginModalOpen(true);
-      }, 500);
-
-    } catch (error) {
-      console.error('❌ Error al registrar:', error);
-      alert(`❌ Error: ${error.message}`);
-    } finally {
-      setLoading(false);
     }
-  };
 
+    console.log('🔥 Usuario registrado y verificado:', data);
+
+    // 🟩 Hacer login inmediato y redirigir
+    await login({
+  email: formData.correo.trim().toLowerCase(),
+  password: formData.password,
+  rememberMe: false
+});
+
+// esperar a que useAuth actualice el estado
+await new Promise(resolve => setTimeout(resolve, 300));
+
+navigate('/participante/dashboard');
+
+
+  } catch (error) {
+    console.error('❌ Error al registrar/verificar:', error);
+    setErrorModal({
+      open: true,
+      message: error.message || 'Ocurrió un error inesperado',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+  
   // ✅ Cuando el usuario cierra el modal sin verificar
   const handleVerificationSkip = () => {
     setShowVerificationModal(false);
-    alert('Puedes verificar tu correo más tarde desde tu perfil.');
+    setErrorModal({
+      open: true,
+      message: "Debe verificar su correo para completar el registro."
+
+    });
   };
+
+  const validateForm = () => {
+  const { nombres, apellidos, dni, correo, telefono, password, confirmPassword, extensionTelefonica } = formData;
+
+  // Nombres
+  if (!nombres.trim()) return "El campo Nombres es obligatorio.";
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombres)) return "Los nombres solo deben contener letras.";
+
+  // Apellidos
+  if (!apellidos.trim()) return "El campo Apellidos es obligatorio.";
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidos)) return "Los apellidos solo deben contener letras.";
+
+  // DNI
+  if (!dni.trim()) return "El DNI es obligatorio.";
+  if (!/^\d{8}$/.test(dni)) return "El DNI debe tener exactamente 8 dígitos.";
+
+  // Correo
+  if (!correo.trim()) return "El correo electrónico es obligatorio.";
+  if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(correo)) return "Correo electrónico inválido.";
+
+  // Código telefónico
+  if (!extensionTelefonica) return "Debe seleccionar un código telefónico.";
+
+  // Teléfono
+  if (!telefono.trim()) return "El teléfono es obligatorio.";
+  if (!/^\d{9}$/.test(telefono)) return "El número telefónico debe tener 9 dígitos.";
+  if (!telefono.startsWith("9")) return "El teléfono peruano debe empezar con 9.";
+
+  // Contraseña
+  if (!password) return "La contraseña es obligatoria.";
+  if (password.length < 6) return "La contraseña debe tener mínimo 6 caracteres.";
+
+  // Confirmar contraseña
+  if (!confirmPassword) return "Debe confirmar su contraseña.";
+  if (password !== confirmPassword) return "Las contraseñas no coinciden.";
+
+  return null; // sin errores
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validaciones
-    if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
-
-    if (formData.dni.length !== 8) {
-      setError('El DNI debe tener 8 dígitos');
-      return;
-    }
-
-    if (formData.telefono.length > 10) {
-      setError('Ingresa un número de teléfono válido');
-      return;
-    }
+     const validationError = validateForm();
+  if (validationError) {
+    setErrorModal({
+      open: true,
+      message: validationError,
+    });
+    return;
+  }
     
 
     // Guardar datos y abrir modal de verificación
@@ -173,7 +212,7 @@ const RegisterPage = () => {
               <IconWrapper>
                 <FiUserPlus size={32} />
               </IconWrapper>
-              <Title>Regístrate en SIGEA</Title>
+              <Title>Regístrate en <Highlight>SIGEA</Highlight></Title>
               <Subtitle>
                 Crea tu cuenta para gestionar eventos académicos
               </Subtitle>
@@ -182,84 +221,78 @@ const RegisterPage = () => {
             <Divider />
 
             <Form onSubmit={handleSubmit}>
-              {error && <ErrorMessage>{error}</ErrorMessage>}
+              <FormRow>
+                <FormGroup>
+                  <Label>
+                    Nombres <Required>*</Required>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="nombres"
+                    placeholder="Juan Alberto"
+                    value={formData.nombres}
+                    onChange={handleInputChange}
+                  />
+                </FormGroup>
 
-              <FormGroup>
-                <Label>
-                  Nombres <Required>*</Required>
-                </Label>
-                <Input
-                  type="text"
-                  name="nombres"
-                  placeholder="Juan Alberto"
-                  value={formData.nombres}
-                  onChange={handleInputChange}
-                  required
-                />
-              </FormGroup>
+                <FormGroup>
+                  <Label>
+                    Apellidos <Required>*</Required>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="apellidos"
+                    placeholder="Rodriguez Pérez"
+                    value={formData.apellidos}
+                    onChange={handleInputChange}
+                  />
+                </FormGroup>
+              </FormRow>
 
-              <FormGroup>
-                <Label>
-                  Apellidos <Required>*</Required>
-                </Label>
-                <Input
-                  type="text"
-                  name="apellidos"
-                  placeholder="Rodriguez Pérez"
-                  value={formData.apellidos}
-                  onChange={handleInputChange}
-                  required
-                />
-              </FormGroup>
+              <FormRow>
+                <FormGroup>
+                  <Label>
+                    DNI <Required>*</Required>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="dni"
+                    placeholder="73403856"
+                    maxLength="8"
+                    value={formData.dni}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData({ ...formData, dni: value }); 
+                    }}
+                  />
+                </FormGroup>
 
-              <FormGroup>
-                <Label>
-                  DNI <Required>*</Required>
-                </Label>
-                <Input
-                  type="text"
-                  name="dni"
-                  placeholder="12345678"
-                  maxLength="8"
-                  pattern="[0-9]{8}"
-                  value={formData.dni}
-                  onChange={handleInputChange}
-                  required
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <Label>
-                  Correo electrónico <Required>*</Required>
-                </Label>
-                <Input
-                  type="email"
-                  name="correo"
-                  placeholder="usuario@unas.edu.pe"
-                  value={formData.correo}
-                  onChange={handleInputChange}
-                  required
-                />
-              </FormGroup>
+                <FormGroup>
+                  <Label>
+                    Correo electrónico <Required>*</Required>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="correo"
+                    placeholder="usuario@unas.edu.pe"
+                    value={formData.correo}
+                    onChange={handleInputChange}
+                    autoComplete="off"
+                  />
+                </FormGroup>
+              </FormRow>
 
               <FormGroup>
                 <Label>
                   Teléfono <Required>*</Required>
                 </Label>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <select
+                <PhoneRow>
+                  <CountrySelect
                     value={formData.extensionTelefonica}
                     onChange={(e) =>
                       setFormData({ ...formData, extensionTelefonica: e.target.value })
                     }
-                    required
-                    style={{
-                      padding: '12px',
-                      borderRadius: '10px',
-                      fontWeight: 'bold',
-                      minWidth: '110px',
-                    }}
                   >
                     <option value="">Código</option>
                     {paisesLatam.map((pais) => (
@@ -267,69 +300,67 @@ const RegisterPage = () => {
                         {pais.label}
                       </option>
                     ))}
-                  </select>
+                  </CountrySelect>
 
                   <Input
                     type="tel"
                     name="telefono"
                     placeholder="999888777"
                     value={formData.telefono}
-                    onChange={handleInputChange}
-                    pattern="[0-9]{9}"
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setFormData({ ...formData, telefono: value });
+                    }}
                     maxLength="9"
-                    required
                   />
-                </div>
+                </PhoneRow>
 
                 <Hint>Debe empezar con 9</Hint>
               </FormGroup>
 
+              <FormRow>
+                <FormGroup>
+                  <Label>
+                    Contraseña <Required>*</Required>
+                  </Label>
+                  <PasswordWrapper>
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                    />
+                    <PasswordToggle
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                    </PasswordToggle>
+                  </PasswordWrapper>
+                </FormGroup>
 
-              <FormGroup>
-                <Label>
-                  Contraseña <Required>*</Required>
-                </Label>
-                <PasswordWrapper>
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    minLength="6"
-                  />
-                  <PasswordToggle
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </PasswordToggle>
-                </PasswordWrapper>
-              </FormGroup>
-
-              <FormGroup>
-                <Label>
-                  Confirmar contraseña <Required>*</Required>
-                </Label>
-                <PasswordWrapper>
-                  <Input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    name="confirmPassword"
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    required
-                    minLength="6"
-                  />
-                  <PasswordToggle
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </PasswordToggle>
-                </PasswordWrapper>
-              </FormGroup>
+                <FormGroup>
+                  <Label>
+                    Confirmar contraseña <Required>*</Required>
+                  </Label>
+                  <PasswordWrapper>
+                    <Input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                    />
+                    <PasswordToggle
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                    </PasswordToggle>
+                  </PasswordWrapper>
+                </FormGroup>
+              </FormRow>
 
               <SubmitButton
                 type="submit"
@@ -356,7 +387,6 @@ const RegisterPage = () => {
         onClose={() => setIsLoginModalOpen(false)}
       />
 
-      {/* ✅ Modal de verificación */}
       {showVerificationModal && registeredUserData && (
         <EmailVerificationModal
           email={registeredUserData.email}
@@ -365,40 +395,284 @@ const RegisterPage = () => {
           onClose={handleVerificationSkip}
         />
       )}
+
+      <AlertError
+        open={errorModal.open}
+        message={errorModal.message}
+        onClose={() => setErrorModal({ open: false, message: "" })}
+      />
     </PublicLayout>
   );
 };
 
-// Styled Components (sin cambios)
+// Styled Components - Diseño Moderno y Limpio
 const PageContainer = styled.div`
   min-height: calc(100vh - 200px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 80px 20px 60px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-  @media (max-width: 768px) { padding: 60px 20px 40px; }
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  
+  @media (max-width: 768px) { 
+    padding: 60px 20px 40px; 
+  }
 `;
 
-const ContentWrapper = styled.div`width: 100%; max-width: 500px;`;
-const FormCard = styled(motion.div)`background: #1e2f4d; border-radius: 24px; padding: 48px 40px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15); @media (max-width: 580px) { padding: 36px 28px; border-radius: 20px; }`;
-const Header = styled.div`text-align: center; margin-bottom: 32px;`;
-const IconWrapper = styled.div`display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%); border-radius: 18px; margin-bottom: 20px; color: white; box-shadow: 0 8px 24px rgba(79, 124, 255, 0.3);`;
-const Title = styled.h2`font-size: 1.75rem; font-weight: 700; color: white; margin-bottom: 12px;`;
-const Subtitle = styled.p`font-size: 0.95rem; color: #b8c5d9; line-height: 1.5; max-width: 380px; margin: 0 auto;`;
-const Divider = styled.div`height: 1px; background: rgba(255, 255, 255, 0.1); margin-bottom: 32px;`;
-const Form = styled.form`display: flex; flex-direction: column; gap: 24px;`;
-const FormGroup = styled.div`display: flex; flex-direction: column; gap: 10px;`;
-const Label = styled.label`font-size: 0.95rem; font-weight: 600; color: white; display: flex; align-items: center; gap: 4px;`;
-const Required = styled.span`color: #ff6b6b;`;
-const Input = styled.input`width: 100%; background: white; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 16px 18px; font-size: 1rem; color: #1a1a1a; transition: all 0.3s ease; box-sizing: border-box; &::placeholder { color: #aaa; } &:focus { outline: none; border-color: #4F7CFF; box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.15); }`;
-const PhoneInputWrapper = styled.div`width: 100%; .react-tel-input { width: 100%; } .react-tel-input .form-control { width: 100%; background: white; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 16px 18px 16px 58px; font-size: 1rem; color: #1a1a1a; height: auto; &:focus { outline: none; border-color: #4F7CFF; box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.15); } }`;
-const Hint = styled.span`font-size: 0.85rem; color: #8b9dc3; margin-top: -5px;`;
-const PasswordWrapper = styled.div`position: relative; width: 100%;`;
-const PasswordToggle = styled.button`position: absolute; right: 18px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; cursor: pointer; &:hover { color: #4F7CFF; }`;
-const ErrorMessage = styled.div`background: rgba(255, 107, 107, 0.15); border: 1px solid #ff6b6b; border-radius: 12px; padding: 14px 18px; color: #ff6b6b; font-size: 0.9rem; text-align: center;`;
-const SubmitButton = styled(motion.button)`background: #4F7CFF; color: white; border: none; border-radius: 14px; padding: 18px 24px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 8px; &:disabled { background: #6b8ac7; cursor: not-allowed; } &:hover:not(:disabled) { background: #3b63e0; box-shadow: 0 6px 20px rgba(79, 124, 255, 0.4); }`;
-const LoginLink = styled.p`font-size: 0.95rem; color: #b8c5d9; text-align: center; margin-top: 4px;`;
-const Link = styled.span`color: #4F7CFF; cursor: pointer; font-weight: 600; &:hover { text-decoration: underline; }`;
+const ContentWrapper = styled.div`
+  width: 100%; 
+  max-width: 680px;
+`;
+
+const FormCard = styled(motion.div)`
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  
+  @media (max-width: 768px) { 
+    padding: 36px 28px;
+    border-radius: 20px;
+  }
+  
+  @media (max-width: 580px) { 
+    padding: 32px 24px;
+  }
+`;
+
+const Header = styled.div`
+  text-align: center;
+  margin-bottom: 32px;
+`;
+
+const IconWrapper = styled.div`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%);
+  border-radius: 20px;
+  margin-bottom: 20px;
+  color: white;
+  box-shadow: 0 8px 24px rgba(79, 124, 255, 0.25);
+`;
+
+const Title = styled.h2`
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+  
+  @media (max-width: 580px) { 
+    font-size: 1.625rem;
+  }
+`;
+
+const Highlight = styled.span`
+  color: #4F7CFF;
+  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
+const Subtitle = styled.p`
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  font-weight: 400;
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+  margin-bottom: 32px;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`;
+
+const FormRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const Label = styled.label`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.01em;
+`;
+
+const Required = styled.span`
+  color: #ef4444;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+  
+  &::placeholder {
+    color: #94a3b8;
+  }
+  
+  &:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #4F7CFF;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
+  }
+`;
+
+const PhoneRow = styled.div`
+  display: flex;
+  gap: 12px;
+`;
+
+const CountrySelect = styled.select`
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  min-width: 140px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  
+  &:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #4F7CFF;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
+  }
+`;
+
+const Hint = styled.span`
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-top: -5px;
+  font-weight: 500;
+`;
+
+const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    color: #4F7CFF;
+    background: #f1f5f9;
+  }
+  
+  &:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+`;
+
+const SubmitButton = styled(motion.button)`
+  background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.2);
+  margin-top: 8px;
+  
+  &:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(79, 124, 255, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+`;
+
+const LoginLink = styled.p`
+  font-size: 0.9rem;
+  color: #64748b;
+  text-align: center;
+  margin-top: 4px;
+  font-weight: 400;
+`;
+
+const Link = styled.span`
+  color: #4F7CFF;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #3b63e0;
+    text-decoration: underline;
+  }
+`;
 
 export default RegisterPage;
