@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-const ActivityCard = ({ activity, onViewDetail, onEdit, onDelete }) => {
+const ActivityCard = ({ activity, onViewDetail, onEdit, onDelete, onAddSession }) => {
   // Helper para formatear fechas
   const formatDate = (dateString) => {
     try {
@@ -62,7 +62,7 @@ const ActivityCard = ({ activity, onViewDetail, onEdit, onDelete }) => {
         borderColor: '#A7F3D0',
         label: 'Virtual'
       },
-      'HIBRIDO': {
+      'HIBRIDA': {
         color: '#f59e0b',
         bg: '#FFF8F0',
         borderColor: '#FDE68A',

@@ -25,10 +25,7 @@ const ActividadesPage = () => {
     updateFilter,
     clearFilters,
   } = useActivities();
-  console.log('ACTIVITIES =>', activities);
-console.log('FILTERS =>', filters);
-console.log('LOADING =>', loading);
-console.log('ERROR =>', error);
+
 
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,11 +39,18 @@ console.log('ERROR =>', error);
     setIsModalOpen(false);
     setTimeout(() => setSelectedActivity(null), 200);
   };
+  
+
+const handleAddSession = (activity) => {
+  navigate(`/organizador/actividades/${activity.id}/sesiones`);
+};
+
+
 
   return (
     <>
       <OrganizerSidebar />
-      
+
       <PageContainer>
         <Container>
           {/* HEADER */}
@@ -115,9 +119,10 @@ console.log('ERROR =>', error);
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <ActivityCard 
+                      <ActivityCard
                         activity={activity}
                         onViewDetail={handleViewDetail}
+                        onAddSession={handleAddSession}
                       />
                     </motion.div>
                   ))}

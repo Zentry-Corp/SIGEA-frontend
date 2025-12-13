@@ -2,9 +2,10 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
-export const RoleRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, role, loading } = useAuth();
+const RoleRoute = ({ children, allowedRoles }) => {
+  const { role, loading } = useAuth();
 
+  // ⏳ Esperar a que termine auth
   if (loading) {
     return (
       <div style={{
@@ -16,34 +17,54 @@ export const RoleRoute = ({ children, allowedRoles }) => {
         color: 'white',
         fontSize: '18px'
       }}>
-        Cargando...
+        Cargando permisos...
       </div>
     );
   }
 
-  if (!allowedRoles.includes(role?.toUpperCase())) {
-    return <Navigate to="/" replace />;
+  // ⏳ Rol aún no disponible
+  if (!role) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: '#0a1628',
+        color: 'white',
+        fontSize: '18px'
+      }}>
+        Cargando rol...
+      </div>
+    );
   }
+  console.log('[RoleRoute]', {
+  loading,
+  role,
+  allowedRoles,
+});
 
-  // Verificar si el rol del usuario está permitido
-  if (!allowedRoles.includes(role)) {
-    console.log('❌ Acceso denegado. Rol actual:', role, 'Roles permitidos:', allowedRoles);
-    // Redirigir al dashboard correcto según su rol
-    return <Navigate to={getRoleDashboard(role?.toUpperCase())} replace />;
+  // ❌ Rol no permitido
+  if (!allowedRoles.includes(role.toUpperCase())) {
+    return <Navigate to={getRoleDashboard(role)} replace />;
   }
 
   return children;
 };
 
-// Helper para obtener el dashboard según el rol
 const getRoleDashboard = (role) => {
-  const roleDashboards = {
-    'ADMINISTRADOR': '/admin/dashboard',
-    'ORGANIZADOR': '/organizador/dashboard',
-    'PARTICIPANTE': '/participante/dashboard',
-  };
-
-  return roleDashboards[role] || '/';
+  switch (role?.toUpperCase()) {
+    case 'ADMINISTRADOR':
+      return '/admin/dashboard';
+    case 'ORGANIZADOR':
+      return '/organizador/dashboard';
+    case 'PARTICIPANTE':
+      return '/participante/dashboard';
+    default:
+      return '/';
+  }
 };
 
 export default RoleRoute;
+
+
