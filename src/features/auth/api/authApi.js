@@ -1,24 +1,38 @@
 import { apiClient } from '../../../shared/api/apiClient';
+import { parseJwt } from '../../../shared/utils/jwtUtils';
+
 
 export const authApi = {
   // Login
   login: async ({ email, password, rememberMe }) => {
-    const response = await apiClient.post('/usuarios/auth/login', {
-      correo: email,
-      password: password,
-      rememberMe: rememberMe,
-    });
+  const normalizedEmail = email.trim().toLowerCase();
 
-    if (response.data.status) {
-      const { accessToken, usuario } = response.data.extraData;
-      sessionStorage.setItem('sigea_token', accessToken);
-      if (usuario) {
-      sessionStorage.setItem('sigea_user', JSON.stringify(usuario));
-    }
-    }
+  console.log("LOGIN NORMALIZADO:", normalizedEmail);
 
-    return response.data;
-  },
+  const response = await apiClient.post('/usuarios/auth/login', {
+    correo: normalizedEmail,
+    password,
+    rememberMe,
+  });
+
+  if (response.data.status) {
+    const { accessToken } = response.data.extraData;
+    sessionStorage.setItem('sigea_token', accessToken);
+
+    const payload = parseJwt(accessToken);
+
+    const userFromToken = {
+      correo: payload.sub,
+      usuarioId: payload.usuarioId,
+      rol: { nombre_rol: payload.roles?.[0] },
+    };
+
+    sessionStorage.setItem('sigea_user', JSON.stringify(userFromToken));
+  }
+
+  return response.data;
+},
+
 
   // Registro de participante
   register: async (userData) => {

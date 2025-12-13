@@ -21,7 +21,7 @@ export const RoleRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!allowedRoles.includes(role?.toUpperCase())) {
     return <Navigate to="/" replace />;
   }
 
@@ -29,7 +29,7 @@ export const RoleRoute = ({ children, allowedRoles }) => {
   if (!allowedRoles.includes(role)) {
     console.log('❌ Acceso denegado. Rol actual:', role, 'Roles permitidos:', allowedRoles);
     // Redirigir al dashboard correcto según su rol
-    return <Navigate to={getRoleDashboard(role)} replace />;
+    return <Navigate to={getRoleDashboard(role?.toUpperCase())} replace />;
   }
 
   return children;

@@ -42,7 +42,7 @@ const EventsSection = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
-        <SectionTitle>Programas y eventos</SectionTitle>
+        <SectionTitle>Programas y <Highlight>eventos</Highlight></SectionTitle>
         <SectionSubtitle>
           Explora nuestra oferta académica de cursos, talleres y conferencias.
         </SectionSubtitle>
@@ -111,7 +111,7 @@ const EventsSection = () => {
 
 const SectionContainer = styled.section`
   padding: 100px 20px;
-  background: #fafbff;
+  background: #f8fafc;
   max-width: 1200px;
   margin: 0 auto;
 
@@ -132,18 +132,30 @@ const SectionHeader = styled(motion.div)`
 const SectionTitle = styled.h2`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1a1a2e;
   margin: 0 0 16px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 
   @media (max-width: 768px) {
     font-size: 2rem;
   }
 `;
 
+const Highlight = styled.span`
+  color: #4F7CFF;
+  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
 const SectionSubtitle = styled.p`
-  font-size: 1.125rem;
-  color: #666;
+  font-size: 1.0625rem;
+  color: #64748b;
   margin: 0;
+  line-height: 1.6;
+  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 1rem;
@@ -153,7 +165,7 @@ const SectionSubtitle = styled.p`
 const EventsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  gap: 28px;
   margin-bottom: 50px;
 
   @media (max-width: 968px) {
@@ -168,15 +180,17 @@ const EventsGrid = styled.div`
 
 const EventCard = styled(motion.div)`
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  border: 1px solid #f1f5f9;
 
   &:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-color: #e2e8f0;
   }
 `;
 
@@ -197,12 +211,12 @@ const EventContent = styled.div`
 `;
 
 const EventTitle = styled.h3`
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #1a1a2e;
   margin: 0;
   line-height: 1.4;
-  min-height: 50px;
+  min-height: 48px;
 
   @media (max-width: 768px) {
     font-size: 1rem;
@@ -213,15 +227,16 @@ const EventTitle = styled.h3`
 const EventInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 `;
 
 const InfoItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  color: #666;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 400;
 
   svg {
     color: #4F7CFF;
@@ -240,38 +255,41 @@ const ModalityBadge = styled.span`
     if (props.$modality === 'Híbrido') return '#92400E';
     return '#4F7CFF';
   }};
-  padding: 4px 12px;
+  padding: 5px 12px;
   border-radius: 12px;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 `;
 
 const PriceSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin-top: auto;
+  padding-top: 8px;
 `;
 
 const PriceLabel = styled.span`
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  font-weight: 500;
 `;
 
 const Price = styled.span`
   font-size: 1.5rem;
   font-weight: 700;
   color: #4F7CFF;
+  letter-spacing: -0.01em;
 `;
 
 const ViewEventButton = styled(motion.button)`
   background: #E8EFFF;
   color: #4F7CFF;
   border: none;
-  padding: 12px 24px;
-  font-size: 0.95rem;
+  padding: 13px 24px;
+  font-size: 0.9375rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   width: 100%;
@@ -288,19 +306,20 @@ const ViewAllButtonWrapper = styled.div`
 `;
 
 const ViewAllButton = styled(motion.button)`
-  background: #4F7CFF;
+  background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%);
   color: white;
   border: none;
   padding: 16px 40px;
   font-size: 1rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.2);
 
   &:hover {
-    background: #3b63e0;
-    box-shadow: 0 4px 12px rgba(79, 124, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(79, 124, 255, 0.3);
+    transform: translateY(-1px);
   }
 
   @media (max-width: 480px) {

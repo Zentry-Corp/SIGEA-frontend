@@ -45,7 +45,7 @@ const TestimonialsSection = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
-        <SectionTitle>Lo que dicen nuestros usuarios</SectionTitle>
+        <SectionTitle>Lo que dicen nuestros <Highlight>usuarios</Highlight></SectionTitle>
         <SectionSubtitle>
           Experiencias reales de estudiantes y profesionales que confían en SIGEA.
         </SectionSubtitle>
@@ -113,21 +113,33 @@ const SectionHeader = styled(motion.div)`
 const SectionTitle = styled.h2`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1a1a2e;
   margin: 0 0 16px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 
   @media (max-width: 768px) {
     font-size: 2rem;
   }
 `;
 
+const Highlight = styled.span`
+  color: #4F7CFF;
+  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+`;
+
 const SectionSubtitle = styled.p`
-  font-size: 1.125rem;
-  color: #666;
+  font-size: 1.0625rem;
+  color: #64748b;
   margin: 0;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
+  line-height: 1.6;
+  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 1rem;
@@ -137,7 +149,7 @@ const SectionSubtitle = styled.p`
 const TestimonialsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  gap: 28px;
 
   @media (max-width: 968px) {
     grid-template-columns: 1fr;
@@ -146,41 +158,47 @@ const TestimonialsGrid = styled.div`
 `;
 
 const TestimonialCard = styled(motion.div)`
-  background: #f8f9ff;
-  border-radius: 16px;
+  background: #f8fafc;
+  border-radius: 20px;
   padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   transition: all 0.3s ease;
+  border: 1px solid #f1f5f9;
 
   &:hover {
-    box-shadow: 0 8px 24px rgba(79, 124, 255, 0.12);
+    background: white;
+    box-shadow: 0 8px 24px rgba(79, 124, 255, 0.1);
+    border-color: #e2e8f0;
   }
 `;
 
 const Rating = styled.div`
   display: flex;
-  gap: 4px;
+  gap: 6px;
 `;
 
 const StarIcon = styled.div`
-  color: ${props => props.$filled ? '#4F7CFF' : '#D1D5DB'};
+  color: ${props => props.$filled ? '#4F7CFF' : '#cbd5e1'};
 `;
 
 const Comment = styled.p`
-  font-size: 1rem;
-  color: #444;
-  line-height: 1.6;
+  font-size: 0.9375rem;
+  color: #475569;
+  line-height: 1.65;
   margin: 0;
   font-style: italic;
   flex: 1;
+  font-weight: 400;
 `;
 
 const UserInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
 `;
 
 const Avatar = styled.div`
@@ -200,18 +218,19 @@ const Avatar = styled.div`
 const UserDetails = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 `;
 
 const UserName = styled.span`
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #1a1a2e;
 `;
 
 const UserRole = styled.span`
-  font-size: 0.875rem;
-  color: #666;
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 400;
 `;
 
 export default TestimonialsSection;

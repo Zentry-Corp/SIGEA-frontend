@@ -1,9 +1,69 @@
 import { useState, useEffect } from 'react';
+import {authApi} from "../api/authApi"; // si no lo tienes, ajusta ruta
+
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+
+// login REAL usando authApi
+const login = async ({ email, password, rememberMe }) => {
+  try {
+    const response = await authApi.login({
+      email,
+      password,
+      rememberMe
+    });
+
+    // ❌ Backend indica error
+    if (!response.status) {
+      throw new Error(response.message || "Credenciales incorrectas");
+    }
+
+    const { accessToken } = response.extraData;
+
+    if (!accessToken) {
+      throw new Error("No se recibió el token de autenticación.");
+    }
+
+    const payload = parseJwt(accessToken);
+
+    if (!payload) {
+      throw new Error("No se pudo decodificar el token.");
+    }
+
+    const usuario = {
+      correo: payload.sub,
+      usuarioId: payload.usuarioId,
+      rol: { nombre_rol: payload.roles?.[0] }
+    };
+
+    // 🟦 Guardar en sessionStorage como ya lo tenías
+    sessionStorage.setItem("sigea_token", accessToken);
+    sessionStorage.setItem("sigea_user", JSON.stringify(usuario));
+
+    setToken(accessToken);
+    setUser(usuario);
+
+    return {
+      success: true,
+      usuario
+    };
+
+  } catch (error) {
+    console.error("❌ Error LOGIN:", error);
+
+    // ⛔ DEVOLVER ERROR PARA ALERTERROR
+    return {
+      success: false,
+      error: error.message || "Error inesperado al iniciar sesión"
+    };
+  }
+};
+
+
+
 
   useEffect(() => {
     checkAuth();
@@ -19,29 +79,31 @@ export const useAuth = () => {
       console.log('👤 [useAuth] Usuario en sessionStorage:', storedUser ? 'SÍ' : 'NO');
 
       if (storedToken) {
-        setToken(storedToken);
-        
-        // Si hay usuario guardado, usarlo
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('👤 [useAuth] Usuario parseado:', parsedUser);
-          setUser(parsedUser);
-        } else {
-          // Si no hay usuario pero hay token, decodificar JWT
-          console.log('⚠️ [useAuth] No hay usuario guardado, decodificando token...');
-          const payload = parseJwt(storedToken);
-          console.log('📦 [useAuth] Payload del token:', payload);
-          
-          // Crear objeto usuario desde el token
-          const userFromToken = {
-            correo: payload?.sub || '',
-            rol: { nombre_rol: payload?.roles?.[0] || '' },
-            usuarioId: payload?.usuarioId || '',
-          };
-          console.log('👤 [useAuth] Usuario creado desde token:', userFromToken);
-          setUser(userFromToken);
-        }
-      } else {
+  setToken(storedToken);
+
+  // --- FIX CRÍTICO AQUÍ ---
+  // Evitar errores cuando storedUser es null, vacío o "undefined"
+  if (!storedUser || storedUser === "undefined" || storedUser === "\"undefined\"") {
+    console.error("⚠️ [useAuth] Usuario inválido en sessionStorage. Limpiando...");
+    sessionStorage.removeItem("sigea_user");
+    setUser(null);
+    return;
+  }
+
+  let parsedUser = null;
+  try {
+    parsedUser = JSON.parse(storedUser);
+  } catch (e) {
+    console.error("⚠️ [useAuth] JSON corrupto. Limpiando...", e);
+    sessionStorage.removeItem("sigea_user");
+    setUser(null);
+    return;
+  }
+
+  console.log("👤 [useAuth] Usuario parseado:", parsedUser);
+  setUser(parsedUser);
+}
+ else {
         console.log('❌ [useAuth] No hay token, usuario NO autenticado');
       }
     } catch (error) {
@@ -74,6 +136,7 @@ export const useAuth = () => {
   return {
     user,
     token,
+    login,
     loading,
     isAuthenticated,
     role,
@@ -81,6 +144,8 @@ export const useAuth = () => {
     checkAuth,
   };
 };
+
+
 
 // Helper para decodificar JWT
 const parseJwt = (token) => {
