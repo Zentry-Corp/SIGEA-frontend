@@ -1,104 +1,62 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/organizer/ActividadesPage.jsx
+
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { 
-  FiPlus, 
-  FiSearch, 
-  FiFilter,
-  FiMoreVertical,
-  FiEdit,
-  FiTrash2,
-  FiEye
-} from 'react-icons/fi';
+import { FiPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import OrganizerLayout from './OrganizerLayout';
+
+import OrganizerSidebar from './OrganizerSidebar';
+import { useActivities } from '../../features/activities/hooks/useActivities';
+import ActivityCard from '../../features/activities/ui/ActivityCard';
+import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
+import ActivityFilters from '../../features/activities/ui/ActivityFilters';
 
 const ActividadesPage = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('Todos');
-  const [filterTime, setFilterTime] = useState('Próximas');
 
-  // Datos de ejemplo (luego conectaremos con el endpoint)
-  const [actividades, setActividades] = useState([
-    {
-      id: 1,
-      icono: '🎓',
-      titulo: 'Diplomado en Gestión Agrícola Sostenible',
-      tipo: 'Diplomado',
-      modalidad: 'Presencial',
-      estado: 'Finalizada',
-      fecha: '01 Feb 2025 - 28 Feb 2025',
-      participantes: 45,
-      cupos: 60,
-      estadoColor: '#6b7280'
-    },
-    {
-      id: 2,
-      icono: '🌱',
-      titulo: 'Curso Avanzado de Sostenibilidad Ambiental',
-      tipo: 'Curso',
-      modalidad: 'Presencial',
-      estado: 'En curso',
-      fecha: '15 Feb 2025 - 20 Feb 2025',
-      participantes: 25,
-      cupos: 40,
-      estadoColor: '#10b981'
-    },
-    {
-      id: 3,
-      icono: '💡',
-      titulo: 'Seminario de Innovación Tecnológica',
-      tipo: 'Seminario',
-      modalidad: 'Virtual',
-      estado: 'En curso',
-      fecha: '18 Feb 2025 - 22 Feb 2025',
-      participantes: 22,
-      cupos: 35,
-      estadoColor: '#10b981'
-    },
-    {
-      id: 4,
-      icono: '🔬',
-      titulo: 'Taller de Investigación Científica',
-      tipo: 'Taller',
-      modalidad: 'Presencial',
-      estado: 'Próxima',
-      fecha: '01 Mar 2025 - 05 Mar 2025',
-      participantes: 18,
-      cupos: 30,
-      estadoColor: '#4f7cff'
-    },
-    {
-      id: 5,
-      icono: '🌾',
-      titulo: 'Conferencia de Agroecología',
-      tipo: 'Conferencia',
-      modalidad: 'Híbrida',
-      estado: 'Próxima',
-      fecha: '10 Mar 2025 - 12 Mar 2025',
-      participantes: 32,
-      cupos: 50,
-      estadoColor: '#4f7cff'
-    }
-  ]);
+  const {
+    activities,
+    tipos,
+    estados,
+    loading,
+    error,
+    filters,
+    updateFilter,
+    clearFilters,
+  } = useActivities();
+  console.log('ACTIVITIES =>', activities);
+console.log('FILTERS =>', filters);
+console.log('LOADING =>', loading);
+console.log('ERROR =>', error);
 
-  const filteredActividades = actividades.filter(act => {
-    const matchesSearch = act.titulo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'Todos' || act.estado === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetail = (activity) => {
+    setSelectedActivity(activity);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedActivity(null), 200);
+  };
 
   return (
-    <OrganizerLayout>
-      <Container>
-        <Header>
-          <HeaderContent>
-            <Title>Gestión de Actividades</Title>
-            <Subtitle>Crea y gestiona tus actividades académicas</Subtitle>
-            <Breadcrumb>Inicio / Gestión de actividades</Breadcrumb>
-          </HeaderContent>
-          <HeaderAction>
+    <>
+      <OrganizerSidebar />
+      
+      <PageContainer>
+        <Container>
+          {/* HEADER */}
+          <Header>
+            <HeaderContent>
+              <Title>Gestión de Actividades</Title>
+              <Subtitle>Crea y gestiona tus actividades académicas</Subtitle>
+              <Breadcrumb>Inicio / <strong>Gestión de actividades</strong></Breadcrumb>
+            </HeaderContent>
+
             <NewActivityButton
               onClick={() => navigate('/organizador/actividades/crear')}
               whileHover={{ scale: 1.02 }}
@@ -107,133 +65,115 @@ const ActividadesPage = () => {
               <FiPlus size={20} />
               Nueva actividad
             </NewActivityButton>
-          </HeaderAction>
-        </Header>
+          </Header>
 
-        {/* Filtros y Búsqueda */}
-        <FiltersBar>
-          <SearchBar>
-            <FiSearch size={20} color="#6b7280" />
-            <SearchInput
-              type="text"
-              placeholder="Buscar por nombre o código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+          {/* FILTROS */}
+          {!loading && !error && (
+            <ActivityFilters
+              filters={filters}
+              tipos={tipos}
+              estados={estados}
+              onFilterChange={updateFilter}
+              onClearFilters={clearFilters}
+              resultCount={activities.length}
             />
-          </SearchBar>
+          )}
 
-          <FilterGroup>
-            <FilterSelect
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="Todos">Todos</option>
-              <option value="En curso">En curso</option>
-              <option value="Próxima">Próximas</option>
-              <option value="Finalizada">Finalizadas</option>
-            </FilterSelect>
+          {/* LOADING STATE */}
+          {loading && (
+            <LoadingContainer>
+              <Spinner />
+              <LoadingText>Cargando actividades...</LoadingText>
+            </LoadingContainer>
+          )}
 
-            <FilterSelect
-              value={filterTime}
-              onChange={(e) => setFilterTime(e.target.value)}
-            >
-              <option value="Próximas">Próximas</option>
-              <option value="Este mes">Este mes</option>
-              <option value="Último mes">Último mes</option>
-            </FilterSelect>
+          {/* ERROR STATE */}
+          {error && (
+            <ErrorContainer>
+              <ErrorIcon>⚠️</ErrorIcon>
+              <ErrorTitle>Error al cargar actividades</ErrorTitle>
+              <ErrorMessage>{error}</ErrorMessage>
+            </ErrorContainer>
+          )}
 
-            <ClearFiltersButton onClick={() => {
-              setSearchTerm('');
-              setFilterStatus('Todos');
-              setFilterTime('Próximas');
-            }}>
-              Limpiar filtros
-            </ClearFiltersButton>
-          </FilterGroup>
-        </FiltersBar>
+          {/* ACTIVIDADES GRID */}
+          {!loading && !error && (
+            <>
+              <ResultsHeader>
+                <ResultsTitle>Mis actividades</ResultsTitle>
+                <ResultsCount>
+                  Mostrando <strong>{activities.length}</strong> {activities.length === 1 ? 'actividad' : 'actividades'}
+                </ResultsCount>
+              </ResultsHeader>
 
-        {/* Lista de Actividades */}
-        <ResultsHeader>
-          <ResultsCount>
-            <strong>Mis actividades</strong>
-            <Count>Mostrando {filteredActividades.length} de {actividades.length}</Count>
-          </ResultsCount>
-        </ResultsHeader>
+              {activities.length > 0 ? (
+                <ActivitiesGrid>
+                  {activities.map((activity, index) => (
+                    <motion.div
+                      key={activity.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <ActivityCard 
+                        activity={activity}
+                        onViewDetail={handleViewDetail}
+                      />
+                    </motion.div>
+                  ))}
+                </ActivitiesGrid>
+              ) : (
+                <EmptyState>
+                  <EmptyIcon>📋</EmptyIcon>
+                  <EmptyTitle>No hay actividades</EmptyTitle>
+                  <EmptyText>
+                    {filters.busqueda || filters.tipo !== 'todos' || filters.estado !== 'todos'
+                      ? 'No se encontraron actividades con los filtros aplicados'
+                      : 'Comienza creando tu primera actividad'}
+                  </EmptyText>
+                  {!filters.busqueda && filters.tipo === 'todos' && filters.estado === 'todos' && (
+                    <CreateButtonSecondary onClick={() => navigate('/organizador/actividades/crear')}>
+                      <FiPlus />
+                      Crear primera actividad
+                    </CreateButtonSecondary>
+                  )}
+                </EmptyState>
+              )}
+            </>
+          )}
+        </Container>
+      </PageContainer>
 
-        <ActivitiesGrid>
-          {filteredActividades.map((actividad, index) => (
-            <ActivityCard
-              key={actividad.id}
-              as={motion.div}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -5, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
-            >
-              <CardHeader>
-                <ActivityIcon>{actividad.icono}</ActivityIcon>
-                <CardMenu>
-                  <FiMoreVertical size={20} color="#6b7280" />
-                </CardMenu>
-              </CardHeader>
-
-              <CardContent>
-                <ActivityType>
-                  {actividad.tipo}
-                  <TypeBadge>{actividad.modalidad}</TypeBadge>
-                  <StatusBadge $color={actividad.estadoColor}>
-                    {actividad.estado}
-                  </StatusBadge>
-                </ActivityType>
-
-                <ActivityTitle>{actividad.titulo}</ActivityTitle>
-
-                <ActivityDate>
-                  Periodo: {actividad.fecha}
-                </ActivityDate>
-
-                <ParticipantsInfo>
-                  Participantes: {actividad.participantes} / Cupos: {actividad.cupos}
-                </ParticipantsInfo>
-              </CardContent>
-
-              <CardFooter>
-                <ViewDetailButton onClick={() => navigate(`/organizador/actividades/${actividad.id}`)}>
-                  Ver detalle
-                </ViewDetailButton>
-              </CardFooter>
-            </ActivityCard>
-          ))}
-        </ActivitiesGrid>
-
-        {filteredActividades.length === 0 && (
-          <EmptyState>
-            <EmptyIcon>📭</EmptyIcon>
-            <EmptyTitle>No se encontraron actividades</EmptyTitle>
-            <EmptyText>
-              {searchTerm 
-                ? 'Intenta con otros términos de búsqueda'
-                : 'Comienza creando tu primera actividad'
-              }
-            </EmptyText>
-            {!searchTerm && (
-              <NewActivityButton
-                onClick={() => navigate('/organizador/actividades/crear')}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <FiPlus size={20} />
-                Crear primera actividad
-              </NewActivityButton>
-            )}
-          </EmptyState>
-        )}
-      </Container>
-    </OrganizerLayout>
+      {/* MODAL - RENDERIZADO AL FINAL */}
+      <ActivityDetailModal
+        activity={selectedActivity}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
+    </>
   );
 };
 
-// Styled Components
+export default ActividadesPage;
+
+/* ============================================
+   🎨 STYLED COMPONENTS
+============================================ */
+
+const PageContainer = styled.div`
+  margin-left: 260px;
+  min-height: 100vh;
+  padding: 40px;
+  background: #f8fafc;
+
+  @media (max-width: 968px) {
+    margin-left: 0;
+    padding-top: 110px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+`;
+
 const Container = styled.div`
   max-width: 1400px;
   margin: 0 auto;
@@ -243,166 +183,161 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  gap: 20px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 968px) {
     flex-direction: column;
-    gap: 16px;
+    align-items: stretch;
   }
 `;
 
-const HeaderContent = styled.div``;
+const HeaderContent = styled.div`
+  flex: 1;
+`;
 
 const Title = styled.h1`
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 8px;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+
+  @media (max-width: 968px) {
+    font-size: 2rem;
+  }
 `;
 
 const Subtitle = styled.p`
-  font-size: 1rem;
-  color: #6b7280;
-  margin-bottom: 4px;
+  font-size: 1.0625rem;
+  color: #64748b;
+  margin: 0 0 8px 0;
+  font-weight: 400;
 `;
 
 const Breadcrumb = styled.div`
-  font-size: 0.9rem;
-  color: #9ca3af;
+  font-size: 0.875rem;
+  color: #94a3b8;
+
+  strong {
+    color: #475569;
+    font-weight: 600;
+  }
 `;
 
-const HeaderAction = styled.div``;
-
 const NewActivityButton = styled(motion.button)`
-  background: #4f7cff;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(79, 124, 255, 0.3);
-
-  &:hover {
-    background: #3b63e0;
-  }
-`;
-
-const FiltersBar = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-  @media (max-width: 768px) {
-    padding: 16px;
-  }
-`;
-
-const SearchBar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-`;
-
-const SearchInput = styled.input`
-  flex: 1;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #4f7cff 0%, #3b63e0 100%);
   border: none;
-  background: transparent;
-  font-size: 0.95rem;
-  color: #1a1a1a;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.2);
 
-  &::placeholder {
-    color: #9ca3af;
+  svg {
+    font-size: 1.125rem;
   }
 
-  &:focus {
-    outline: none;
+  &:hover {
+    box-shadow: 0 6px 20px rgba(79, 124, 255, 0.3);
+  }
+
+  @media (max-width: 968px) {
+    width: 100%;
+    justify-content: center;
   }
 `;
 
-const FilterGroup = styled.div`
+const LoadingContainer = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
 `;
 
-const FilterSelect = styled.select`
-  padding: 10px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  font-size: 0.9rem;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s;
+const Spinner = styled.div`
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f1f5f9;
+  border-top-color: #4f7cff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 
-  &:hover {
-    border-color: #4f7cff;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #4f7cff;
-    box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
-const ClearFiltersButton = styled.button`
-  padding: 10px 16px;
-  background: transparent;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  color: #6b7280;
-  font-size: 0.9rem;
+const LoadingText = styled.p`
+  font-size: 1rem;
+  color: #64748b;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+`;
 
-  &:hover {
-    background: #f9fafb;
-    color: #4f7cff;
-    border-color: #4f7cff;
-  }
+const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 40px;
+  text-align: center;
+`;
+
+const ErrorIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 20px;
+`;
+
+const ErrorTitle = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+`;
+
+const ErrorMessage = styled.p`
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  max-width: 400px;
 `;
 
 const ResultsHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 24px;
 `;
 
-const ResultsCount = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  strong {
-    font-size: 1.25rem;
-    color: #1a1a1a;
-  }
+const ResultsTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
 `;
 
-const Count = styled.span`
-  font-size: 0.9rem;
-  color: #6b7280;
+const ResultsCount = styled.p`
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+
+  strong {
+    color: #4F7CFF;
+    font-weight: 700;
+  }
 `;
 
 const ActivitiesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
 
   @media (max-width: 768px) {
@@ -410,141 +345,60 @@ const ActivitiesGrid = styled.div`
   }
 `;
 
-const ActivityCard = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-  cursor: pointer;
-`;
-
-const CardHeader = styled.div`
+const EmptyState = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-`;
-
-const ActivityIcon = styled.div`
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-`;
-
-const CardMenu = styled.button`
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #f3f4f6;
-  }
-`;
-
-const CardContent = styled.div`
-  margin-bottom: 20px;
-`;
-
-const ActivityType = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-`;
-
-const TypeBadge = styled.span`
-  padding: 4px 10px;
-  background: #4f7cff;
-  color: white;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-`;
-
-const StatusBadge = styled.span`
-  padding: 4px 10px;
-  background: ${props => props.$color};
-  color: white;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-`;
-
-const ActivityTitle = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 12px;
-  line-height: 1.4;
-`;
-
-const ActivityDate = styled.div`
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin-bottom: 8px;
-`;
-
-const ParticipantsInfo = styled.div`
-  font-size: 0.9rem;
-  color: #6b7280;
-`;
-
-const CardFooter = styled.div`
-  display: flex;
-  gap: 12px;
-`;
-
-const ViewDetailButton = styled.button`
-  flex: 1;
-  padding: 10px 16px;
-  background: transparent;
-  border: 1px solid #4f7cff;
-  border-radius: 8px;
-  color: #4f7cff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #4f7cff;
-    color: white;
-  }
-`;
-
-const EmptyState = styled.div`
+  min-height: 400px;
+  padding: 40px;
   text-align: center;
-  padding: 80px 20px;
+  background: #ffffff;
+  border: 2px dashed #e2e8f0;
+  border-radius: 20px;
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 5rem;
-  margin-bottom: 16px;
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.7;
 `;
 
 const EmptyTitle = styled.h3`
   font-size: 1.5rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 8px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
 `;
 
 const EmptyText = styled.p`
   font-size: 1rem;
-  color: #6b7280;
-  margin-bottom: 24px;
+  color: #64748b;
+  margin: 0 0 24px 0;
+  max-width: 400px;
 `;
 
-export default ActividadesPage;
+const CreateButtonSecondary = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #4f7cff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    background: #4f7cff;
+    color: #ffffff;
+    border-color: #4f7cff;
+  }
+`;

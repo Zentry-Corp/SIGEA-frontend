@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { 
-  FiSave, 
+import {
+  FiSave,
   FiX,
   FiCalendar,
   FiClock,
@@ -11,13 +11,14 @@ import {
   FiImage,
   FiUser,
   FiUpload,
-  FiInfo
+  FiInfo,
+  FiList
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
-import { actividadesApi } from '../../features/activities/api/actividadesApi';
 import OrganizerLayout from './OrganizerLayout';
 import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
+import { useCreateActivity } from '../../features/activities/hooks/useCreateActivity';
 
 
 
@@ -26,10 +27,8 @@ const CrearActividadPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false); // ← AGREGADO
-  const [tiposActividad, setTiposActividad] = useState([]);
-  const [estadosActividad, setEstadosActividad] = useState([]);
-  
-  
+
+
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
@@ -47,68 +46,49 @@ const CrearActividadPage = () => {
     numeroYape: ''
   });
 
-  const [errors, setErrors] = useState({});
-  const [errorModal, setErrorModal] = useState({
-  open: false,
-  message: "",
+  const {
+    tipos,
+    estados,
+    loading: metadataLoading,
+    error: metadataError,
+    createActivity,
+  } = useCreateActivity();
 
-  
-});
-
-const [successModal, setSuccessModal] = useState({
-  open: false,
-  message: "",
-});
-
-const [warningModal, setWarningModal] = useState({
-  open: false,
-  message: "",
-});
-
-
-
-
-  // Cargar tipos de actividad y estados
   useEffect(() => {
-    fetchTiposActividad();
-    fetchEstadosActividad();
-    
-    // Pre-llenar organizadorId con el ID del usuario actual
     if (user?.usuarioId) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        organizadorId: user.usuarioId
+        organizadorId: user.usuarioId,
       }));
     }
   }, [user]);
 
-  const fetchTiposActividad = async () => {
-    try {
-      const response = await actividadesApi.listarTipos();
-      setTiposActividad(response.data);
-    } catch (error) {
-      console.error('Error al cargar tipos de actividad:', error);
-      setErrorModal({
-  open: true,
-  message: errorMessage
-});
+  const [errors, setErrors] = useState({});
+  const [errorModal, setErrorModal] = useState({
+    open: false,
+    message: "",
 
-    }
-  };
 
-  const fetchEstadosActividad = async () => {
-    try {
-      const response = await actividadesApi.listarEstados();
-      setEstadosActividad(response.data);
-    } catch (error) {
-      console.error('Error al cargar estados de actividad:', error);
-      setErrorModal({
-  open: true,
-  message: errorMessage
-});
+  });
 
-    }
-  };
+  const [successBannerModal, setSuccessBannerModal] = useState({
+    open: false,
+    message: "",
+  });
+
+  const [successActivityModal, setSuccessActivityModal] = useState({
+    open: false,
+    message: "",
+  });
+
+
+  const [warningModal, setWarningModal] = useState({
+    open: false,
+    message: "",
+  });
+
+
+  // Cargar tipos de actividad y estados
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -127,16 +107,16 @@ const [warningModal, setWarningModal] = useState({
 
   const handleBannerUpload = async (e) => {
     const file = e.target.files[0];
-    
+
     if (!file) return;
 
     // Validar tipo de archivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       setErrorModal({
-  open: true,
-  message: errorMessage
-});
+        open: true,
+        message: 'Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, GIF, WEBP)'
+      });
 
       return;
     }
@@ -144,9 +124,9 @@ const [warningModal, setWarningModal] = useState({
     // Validar tamaño (10MB = 10485760 bytes)
     if (file.size > 10485760) {
       setErrorModal({
-  open: true,
-  message: errorMessage
-});
+        open: true,
+        message: 'El tamaño del archivo no puede exceder 10MB'
+      });
 
       return;
     }
@@ -177,10 +157,12 @@ const [warningModal, setWarningModal] = useState({
           bannerUrl: `https://sigeabackend.zentrycorp.dev${data.url}`
 
         }));
-        setErrorModal({
-  open: true,
-  message: errorMessage
-});
+
+        setSuccessBannerModal({
+          open: true,
+          message: 'Banner subido exitosamente'
+        });
+
 
       } else {
         alert(`❌ Error: ${data.message || 'No se pudo subir el banner'}`);
@@ -188,9 +170,9 @@ const [warningModal, setWarningModal] = useState({
     } catch (error) {
       console.error('Error al subir banner:', error);
       setErrorModal({
-  open: true,
-  message: errorMessage
-});
+        open: true,
+        message: 'Error al subir el banner. Por favor, inténtalo de nuevo'
+      });
 
     } finally {
       setUploadingBanner(false);
@@ -243,79 +225,88 @@ const [warningModal, setWarningModal] = useState({
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
 
-  if (!validateForm()) {
-    setErrorModal({
-      open: true,
-      message: "⚠️ Por favor completa todos los campos obligatorios",
-    });
-    return;
-  }
+    e.preventDefault();
 
-  setLoading(true);
+    if (!validateForm()) {
+      setErrorModal({
+        open: true,
+        message: "⚠️ Por favor completa todos los campos obligatorios",
+      });
+      return;
+    }
 
-  // 🔥 Construimos el payload ANTES del try/catch para evitar errores de scope
-  const payload = {
-    titulo: formData.titulo,
-    descripcion: formData.descripcion,
-    fechaInicio: formData.fechaInicio,
-    fechaFin: formData.fechaFin,
-    horaInicio: formData.horaInicio,
-    horaFin: formData.horaFin,
-    organizadorId: formData.organizadorId,
-    tipoActividadId: formData.tipoActividadId,
-    ubicacion: formData.ubicacion,
+    setLoading(true);
+
+    // 🔥 Construimos el payload ANTES del try/catch para evitar errores de scope
+    const payload = {
+      titulo: formData.titulo,
+      descripcion: formData.descripcion,
+      fechaInicio: formData.fechaInicio,
+      fechaFin: formData.fechaFin,
+      horaInicio: formData.horaInicio,
+      horaFin: formData.horaFin,
+      organizadorId: formData.organizadorId,
+      tipoActividadId: formData.tipoActividadId,
+      ubicacion: formData.ubicacion,
+    };
+
+    if (formData.estadoId) payload.estadoId = formData.estadoId;
+    if (formData.coOrganizador) payload.coOrganizador = formData.coOrganizador;
+    if (formData.sponsor) payload.sponsor = formData.sponsor;
+    if (formData.bannerUrl) payload.bannerUrl = formData.bannerUrl;
+    if (formData.numeroYape) payload.numeroYape = formData.numeroYape;
+
+    console.log("📤 Payload limpio:", payload);
+
+    try {
+      const response = await createActivity(payload);
+      console.log("🧪 organizadorId:", formData.organizadorId);
+      console.log("🧪 tipoActividadId:", typeof payload.tipoActividadId, payload.tipoActividadId);
+
+      console.log("🧾 Respuesta del backend:", response);
+
+      if (!response?.id) {
+        throw new Error("La actividad no fue creada correctamente. Falta ID en la respuesta.");
+      }
+
+      setSuccessActivityModal({
+        open: true,
+        message: "🎉 La actividad ha sido creada exitosamente.",
+      });
+
+
+      // retrasar la navegación hasta que cierre el modal
+      setTimeout(() => {
+        navigate("/organizador/actividades");
+      }, 1500);
+
+    } catch (error) {
+      console.error("❌ Error completo:", error);
+
+      const errorMessage =
+        error.response?.data?.descripcion ||
+        error.response?.data?.message ||
+        error.message ||
+        "Error desconocido";
+
+      setErrorModal({
+        open: true,
+        message: errorMessage,
+      });
+
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (formData.estadoId) payload.estadoId = formData.estadoId;
-  if (formData.coOrganizador) payload.coOrganizador = formData.coOrganizador;
-  if (formData.sponsor) payload.sponsor = formData.sponsor;
-  if (formData.bannerUrl) payload.bannerUrl = formData.bannerUrl;
-  if (formData.numeroYape) payload.numeroYape = formData.numeroYape;
 
-  console.log("📤 Payload limpio:", payload);
-
-  try {
-    const response = await actividadesApi.crear(payload);
-
-    // Modal de éxito (lo hago si deseas)
-    setSuccessModal({
-  open: true,
-  message: "🎉 La actividad ha sido creada exitosamente.",
-});
-
-// retrasar la navegación hasta que cierre el modal
-setTimeout(() => {
-  navigate("/organizador/actividades");
-}, 1500);
-
-  } catch (error) {
-    console.error("❌ Error completo:", error);
-
-    const errorMessage =
-      error.response?.data?.descripcion ||
-      error.response?.data?.message ||
-      error.message ||
-      "Error desconocido";
-
-    setErrorModal({
+  const handleCancel = () => {
+    setWarningModal({
       open: true,
-      message: errorMessage,
+      message: "¿Estás seguro? Los cambios no guardados se perderán.",
     });
-
-  } finally {
-    setLoading(false);
-  }
-};
-
-
- const handleCancel = () => {
-  setWarningModal({
-    open: true,
-    message: "¿Estás seguro? Los cambios no guardados se perderán.",
-  });
-};
+  };
 
 
   return (
@@ -387,19 +378,19 @@ setTimeout(() => {
                   $hasError={!!errors.tipoActividadId}
                 >
                   <option value="">Seleccionar tipo</option>
-                  {tiposActividad.map((tipo) => (
+                  {tipos.map((tipo) => (
                     <option key={tipo.id} value={tipo.id}>
                       {tipo.nombreActividad}
                     </option>
                   ))}
                 </Select>
                 {errors.tipoActividadId && <ErrorMessage>{errors.tipoActividadId}</ErrorMessage>}
-                {tiposActividad.length === 0 && (
+                {tipos.length === 0 && (
                   <HelpText>Cargando tipos de actividad...</HelpText>
                 )}
               </FormGroup>
 
-              <FormGroup> <Label> Estado </Label> <Select name="estadoId" value={formData.estadoId} onChange={handleInputChange} > <option value="">Seleccionar estado (opcional)</option> {estadosActividad.map((estado) => ( <option key={estado.id} value={estado.id}> {estado.etiqueta} </option> ))} </Select> {estadosActividad.length === 0 && ( <HelpText>Cargando estados...</HelpText> )} </FormGroup>
+              <FormGroup> <Label> Estado </Label> <Select name="estadoId" value={formData.estadoId} onChange={handleInputChange} > <option value="">Seleccionar estado (opcional)</option> {estados.map((estado) => (<option key={estado.id} value={estado.id}> {estado.etiqueta} </option>))} </Select> {estados.length === 0 && (<HelpText>Cargando estados...</HelpText>)} </FormGroup>
             </FormRow>
 
             {/* Fechas y Horarios */}
@@ -545,70 +536,70 @@ setTimeout(() => {
               Recursos Adicionales
             </SectionTitle>
 
-           <FormRow $columns={2}>
-  {/* Banner */}
-  <FormGroup>
-    <Label>
-      <FiImage size={16} /> Banner de la Actividad
-    </Label>
-    <UploadArea>
-      <FileInputWrapper>
-        <FileInput
-          type="file"
-          id="bannerUpload"
-          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-          onChange={handleBannerUpload}
-          disabled={uploadingBanner}
-        />
-        <UploadButton
-          as="label"
-          htmlFor="bannerUpload"
-          $uploading={uploadingBanner}
-        >
-          <FiUpload size={20} />
-          {uploadingBanner ? 'Subiendo...' : 'Subir Banner'}
-        </UploadButton>
-      </FileInputWrapper>
+            <FormRow $columns={2}>
+              {/* Banner */}
+              <FormGroup>
+                <Label>
+                  <FiImage size={16} /> Banner de la Actividad
+                </Label>
+                <UploadArea>
+                  <FileInputWrapper>
+                    <FileInput
+                      type="file"
+                      id="bannerUpload"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleBannerUpload}
+                      disabled={uploadingBanner}
+                    />
+                    <UploadButton
+                      as="label"
+                      htmlFor="bannerUpload"
+                      $uploading={uploadingBanner}
+                    >
+                      <FiUpload size={20} />
+                      {uploadingBanner ? 'Subiendo...' : 'Subir Banner'}
+                    </UploadButton>
+                  </FileInputWrapper>
 
-      {formData.bannerUrl && (
-        <BannerPreview>
-          <PreviewImage src={formData.bannerUrl} alt="Banner preview" />
-          <PreviewUrl>{formData.bannerUrl}</PreviewUrl>
-        </BannerPreview>
-      )}
-    </UploadArea>
-    <HelpText>JPG, PNG, GIF o WEBP. Máximo 10MB</HelpText>
-  </FormGroup>
+                  {formData.bannerUrl && (
+                    <BannerPreview>
+                      <PreviewImage src={formData.bannerUrl} alt="Banner preview" />
+                      <PreviewUrl>{formData.bannerUrl}</PreviewUrl>
+                    </BannerPreview>
+                  )}
+                </UploadArea>
+                <HelpText>JPG, PNG, GIF o WEBP. Máximo 10MB</HelpText>
+              </FormGroup>
 
-  {/* NUMERO YAPE */}
-  <FormGroup>
-    <Label>
-      <FiDollarSign size={16} /> Número Yape (Pagos)
-    </Label>
-    <Input
-      type="text"
-      name="numeroYape"
-      placeholder="Ej: 987654321"
-      maxLength={9}
-      value={formData.numeroYape}
-      onChange={(e) => {
-        const value = e.target.value;
-        const onlyNumbers = value.replace(/\D/g, "");
-        handleInputChange({
-          target: {
-            name: "numeroYape",
-            value: onlyNumbers.slice(0, 9)
-          }
-        });
-      }}
-    />
-    <HelpText>Debe contener 9 dígitos (solo números)</HelpText>
-  </FormGroup>
-</FormRow>
+              {/* NUMERO YAPE */}
+              <FormGroup>
+                <Label>
+                  <FiDollarSign size={16} /> Número Yape (Pagos)
+                </Label>
+                <Input
+                  type="text"
+                  name="numeroYape"
+                  placeholder="Ej: 987654321"
+                  maxLength={9}
+                  value={formData.numeroYape}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const onlyNumbers = value.replace(/\D/g, "");
+                    handleInputChange({
+                      target: {
+                        name: "numeroYape",
+                        value: onlyNumbers.slice(0, 9)
+                      }
+                    });
+                  }}
+                />
+                <HelpText>Debe contener 9 dígitos (solo números)</HelpText>
+              </FormGroup>
+            </FormRow>
 
 
             <FormRow>
-</FormRow>
+            </FormRow>
 
 
             {/* Botones de Acción */}
@@ -635,28 +626,35 @@ setTimeout(() => {
           </Form>
         </FormCard>
       </Container>
-      <AlertError 
-  open={errorModal.open}
-  message={errorModal.message}
-  onClose={() => setErrorModal({ open: false, message: "" })}
-/>
-<AlertSuccess
-  open={successModal.open}
-  message={successModal.message}
-  onClose={() => {
-    setSuccessModal({ open: false, message: "" });
-    navigate("/organizador/actividades");
-  }}
-/>
-<AlertWarning
-  open={warningModal.open}
-  message={warningModal.message}
-  onCancel={() => setWarningModal({ open: false, message: "" })}
-  onConfirm={() => {
-    setWarningModal({ open: false, message: "" });
-    navigate("/organizador/actividades");
-  }}
-/>
+      <AlertError
+        open={errorModal.open}
+        message={errorModal.message}
+        onClose={() => setErrorModal({ open: false, message: "" })}
+      />
+      <AlertSuccess
+        open={successBannerModal.open}
+        message={successBannerModal.message}
+        onClose={() => setSuccessBannerModal({ open: false, message: "" })}
+      />
+
+      <AlertSuccess
+        open={successActivityModal.open}
+        message={successActivityModal.message}
+        onClose={() => {
+          setSuccessActivityModal({ open: false, message: "" });
+          navigate("/organizador/actividades");
+        }}
+      />
+
+      <AlertWarning
+        open={warningModal.open}
+        message={warningModal.message}
+        onCancel={() => setWarningModal({ open: false, message: "" })}
+        onConfirm={() => {
+          setWarningModal({ open: false, message: "" });
+          navigate("/organizador/actividades");
+        }}
+      />
 
 
     </OrganizerLayout>
