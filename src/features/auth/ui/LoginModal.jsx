@@ -1,29 +1,30 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
-import { Modal } from '../../../shared/ui/components/modal';
-import { useLogin } from '../hooks/useLogin';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { Modal } from "../../../shared/ui/components/modal";
+import { useLogin } from "../hooks/useLogin";
 import { parseJwt } from "../../../shared/utils/jwtUtils";
-import { useNavigate } from 'react-router-dom';
-import { authApi } from '../api';
+import { useNavigate } from "react-router-dom";
+import { authApi } from "../api";
 import { AlertError } from "@/shared/ui/components/Alert";
+import LoadingModal from "@/shared/ui/components/Loader/LoadingModal";
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const { login, loading, error } = useLogin();
   const navigate = useNavigate();
 
   const [errorModal, setErrorModal] = useState({
-  open: false,
-  message: "",
-});
+    open: false,
+    message: "",
+  });
 
   const handleInputChange = (e) => {
     setFormData({
@@ -33,104 +34,100 @@ const LoginModal = ({ isOpen, onClose }) => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // 🚨 VALIDACIONES DE CAMPOS VACÍOS
-  if (!formData.email.trim() || !formData.password.trim()) {
-    setErrorModal({
-      open: true,
-      message: "Debe ingresar correo y contraseña.",
-    });
-    return;
-  }
-
-  authApi.logout(); // Limpiar posibles sesiones previas
-  console.log('🚀 [LOGIN] Iniciando proceso de login...');
-
-  try {
-    const result = await login({
-      email: formData.email,
-      password: formData.password,
-      rememberMe,
-    });
-
-    console.log("📊 [LOGIN] Result completo:", result);
-
-    // ❌ LOGIN FALLÓ (backend o hook devuelve error)
-    if (!result.success) {
+    // 🚨 VALIDACIONES DE CAMPOS VACÍOS
+    if (!formData.email.trim() || !formData.password.trim()) {
       setErrorModal({
         open: true,
-        message: result.error || "Credenciales incorrectas",
+        message: "Debe ingresar correo y contraseña.",
       });
       return;
     }
 
-    // ✅ LOGIN EXITOSO
-    console.log("🎉 Login exitoso");
+    authApi.logout(); // Limpiar posibles sesiones previas
+    console.log("🚀 [LOGIN] Iniciando proceso de login...");
 
-    const token = sessionStorage.getItem("sigea_token");
-    if (!token) {
-      setErrorModal({
-        open: true,
-        message: "Error inesperado: no se recibió el token.",
+    try {
+      const result = await login({
+        email: formData.email,
+        password: formData.password,
+        rememberMe,
       });
-      return;
-    }
 
-    const payload = parseJwt(token);
-    const rol =
-      payload?.roles?.[0] ||
-      payload?.rol ||
-      payload?.authorities?.[0] ||
-      "";
+      console.log("📊 [LOGIN] Result completo:", result);
 
-    if (!rol) {
-      setErrorModal({
-        open: true,
-        message: "No se encontró un rol válido en el token",
-      });
-      return;
-    }
-
-    console.log("🎭 Rol:", rol);
-
-    // cerrar modal
-    onClose();
-
-    // pequeño delay
-    setTimeout(() => {
-      switch (rol.toUpperCase()) {
-        case "ADMINISTRADOR":
-          navigate("/admin/dashboard");
-          break;
-        case "ORGANIZADOR":
-          navigate("/organizador/dashboard");
-          break;
-        case "PARTICIPANTE":
-          navigate("/participante/dashboard");
-          break;
-        default:
-          setErrorModal({
-            open: true,
-            message: `Rol no reconocido: ${rol}`,
-          });
-          navigate("/");
+      // ❌ LOGIN FALLÓ (backend o hook devuelve error)
+      if (!result.success) {
+        setErrorModal({
+          open: true,
+          message: result.error || "Credenciales incorrectas",
+        });
+        return;
       }
-    }, 150);
-  } catch (err) {
-    console.error("❌ Error en login:", err);
 
-    setErrorModal({
-      open: true,
-      message: err.message || "Error inesperado. Intente nuevamente.",
-    });
-  }
-};
+      // ✅ LOGIN EXITOSO
+      console.log("🎉 Login exitoso");
 
+      const token = sessionStorage.getItem("sigea_token");
+      if (!token) {
+        setErrorModal({
+          open: true,
+          message: "Error inesperado: no se recibió el token.",
+        });
+        return;
+      }
+
+      const payload = parseJwt(token);
+      const rol =
+        payload?.roles?.[0] || payload?.rol || payload?.authorities?.[0] || "";
+
+      if (!rol) {
+        setErrorModal({
+          open: true,
+          message: "No se encontró un rol válido en el token",
+        });
+        return;
+      }
+
+      console.log("🎭 Rol:", rol);
+
+      // cerrar modal
+      onClose();
+
+      // pequeño delay
+      setTimeout(() => {
+        switch (rol.toUpperCase()) {
+          case "ADMINISTRADOR":
+            navigate("/admin/dashboard");
+            break;
+          case "ORGANIZADOR":
+            navigate("/organizador/dashboard");
+            break;
+          case "PARTICIPANTE":
+            navigate("/participante/dashboard");
+            break;
+          default:
+            setErrorModal({
+              open: true,
+              message: `Rol no reconocido: ${rol}`,
+            });
+            navigate("/");
+        }
+      }, 150);
+    } catch (err) {
+      console.error("❌ Error en login:", err);
+
+      setErrorModal({
+        open: true,
+        message: err.message || "Error inesperado. Intente nuevamente.",
+      });
+    }
+  };
 
   const handleRegisterClick = () => {
     onClose();
-    window.location.href = '/register';
+    window.location.href = "/register";
   };
 
   return (
@@ -165,7 +162,7 @@ const LoginModal = ({ isOpen, onClose }) => {
             </Label>
             <PasswordWrapper>
               <Input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="••••••••"
                 value={formData.password}
@@ -188,9 +185,7 @@ const LoginModal = ({ isOpen, onClose }) => {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
-              <CheckboxLabel htmlFor="rememberMe">
-                Recordarme
-              </CheckboxLabel>
+              <CheckboxLabel htmlFor="rememberMe">Recordarme</CheckboxLabel>
             </CheckboxContainer>
 
             <ForgotPassword href="/forgot-password">
@@ -204,22 +199,25 @@ const LoginModal = ({ isOpen, onClose }) => {
             whileHover={{ scale: loading ? 1 : 1.02 }}
             whileTap={{ scale: loading ? 1 : 0.98 }}
           >
-            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+            Iniciar sesión
           </SubmitButton>
 
           <RegisterLink>
-            ¿No tienes cuenta?{' '}
+            ¿No tienes cuenta?{" "}
             <Link onClick={handleRegisterClick}>Regístrate aquí</Link>
           </RegisterLink>
         </Form>
-         <AlertError
-  open={errorModal.open}
-  message={errorModal.message}
-  onClose={() => setErrorModal({ open: false, message: "" })}
-/>
+        <AlertError
+          open={errorModal.open}
+          message={errorModal.message}
+          onClose={() => setErrorModal({ open: false, message: "" })}
+        />
       </Container>
-     
-
+      <LoadingModal
+        isOpen={loading}
+        message="Iniciando sesión..."
+        submessage="Verificando credenciales"
+      />
     </Modal>
   );
 };
@@ -253,8 +251,8 @@ const Title = styled.h2`
 `;
 
 const Highlight = styled.span`
-  color: #4F7CFF;
-  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  color: #4f7cff;
+  background: linear-gradient(135deg, #4f7cff 0%, #6b92ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -313,7 +311,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #4F7CFF;
+    border-color: #4f7cff;
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
   }
@@ -341,7 +339,7 @@ const PasswordToggle = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    color: #4F7CFF;
+    color: #4f7cff;
     background: #f1f5f9;
   }
 
@@ -368,7 +366,7 @@ const Checkbox = styled.input`
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #4F7CFF;
+  accent-color: #4f7cff;
   border-radius: 4px;
 `;
 
@@ -386,7 +384,7 @@ const CheckboxLabel = styled.label`
 
 const ForgotPassword = styled.a`
   font-size: 0.875rem;
-  color: #4F7CFF;
+  color: #4f7cff;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
@@ -411,7 +409,7 @@ const ErrorMessage = styled.div`
 `;
 
 const SubmitButton = styled(motion.button)`
-  background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #3b63e0 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -448,7 +446,7 @@ const RegisterLink = styled.p`
 `;
 
 const Link = styled.span`
-  color: #4F7CFF;
+  color: #4f7cff;
   cursor: pointer;
   font-weight: 600;
   transition: color 0.2s ease;

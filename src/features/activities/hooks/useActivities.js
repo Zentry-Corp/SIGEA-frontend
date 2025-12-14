@@ -11,6 +11,14 @@ export const useActivities = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await activitiesApi.getAll();
+      setActivities(data);
+    };
+    fetch();
+  }, []);
+
   // Filtros
   const [filters, setFilters] = useState({
     tipo: 'todos',
@@ -29,6 +37,8 @@ export const useActivities = () => {
         activitiesApi.listarTipos(), // ← Cambio aquí
         activitiesApi.listarEstados(), // ← Cambio aquí
       ]);
+      console.log(activitiesRes[0]);
+
 
       console.log('✅ Actividades recibidas:', activitiesRes);
       console.log('✅ Tipos recibidos:', tiposRes);
@@ -127,5 +137,8 @@ export const useActivities = () => {
     refetch: fetchData,
   };
 };
+
+
+
 
 export default useActivities;

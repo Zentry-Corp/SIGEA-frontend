@@ -98,27 +98,18 @@ const CreateSessionModal = ({ isOpen, onClose, onSave }) => {
     const [horaFinHour, horaFinMinute] = formData.horaFin.split(':');
 
     const sessionData = {
-      titulo: formData.titulo,
-      descripcion: formData.descripcion,
-      ponente: formData.ponente,
-      modalidad: formData.modalidad,
-      linkVirtual: formData.link_virtual || '',
-      orden: formData.orden || '1',
-      fechaSesion: `${formData.fecha_sesion}T00:00:00.000Z`,
-      horaInicio: {
-        hour: parseInt(horaInicioHour),
-        minute: parseInt(horaInicioMinute),
-        second: 0,
-        nano: 0
-      },
-      horaFin: {
-        hour: parseInt(horaFinHour),
-        minute: parseInt(horaFinMinute),
-        second: 0,
-        nano: 0
-      },
-      lugarSesion: formData.lugarSesion || ''
-    };
+  titulo: formData.titulo,
+  descripcion: formData.descripcion,
+  ponente: formData.ponente,
+  modalidad: formData.modalidad,
+  linkVirtual: formData.link_virtual || '',
+  orden: formData.orden || '1',
+  fechaSesion: formData.fecha_sesion,  // Se transformará al formato ISO en el backend
+  horaInicio: formData.horaInicio,     // Ej. "09:00"
+  horaFin: formData.horaFin,           // Ej. "11:00"
+  lugarSesion: formData.lugarSesion || ''
+};
+
 
     onSave(sessionData);
     handleClose();
