@@ -35,7 +35,7 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
     const colores = {
       'PRESENCIAL': '#1e40af',  // Azul oscuro
       'VIRTUAL': '#065f46',     // Verde oscuro
-      'HIBRIDO': '#92400e',     // Naranja oscuro
+      'HIBRIDA': '#92400e',     // Naranja oscuro
       'BORRADOR': '#374151',    // Gris oscuro
       'PUBLICADO': '#065f46',   // Verde oscuro
       'FINALIZADO': '#991b1b',  // Rojo oscuro
