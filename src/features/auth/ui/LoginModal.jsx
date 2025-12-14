@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
-import { Modal } from '../../../shared/ui/components/modal';
+import { Modal } from '../../../shared/ui/components/Modal';
 import { useLogin } from '../hooks/useLogin';
 import { parseJwt } from "../../../shared/utils/jwtUtils";
 import { useNavigate } from 'react-router-dom';
