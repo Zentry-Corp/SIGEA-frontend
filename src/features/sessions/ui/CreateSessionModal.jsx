@@ -102,9 +102,9 @@ const CreateSessionModal = ({ isOpen, onClose, onSave }) => {
       descripcion: formData.descripcion,
       ponente: formData.ponente,
       modalidad: formData.modalidad,
-      link_virtual: formData.link_virtual || '',
+      linkVirtual: formData.link_virtual || '',
       orden: formData.orden || '1',
-      fecha_sesion: `${formData.fecha_sesion}T00:00:00.000Z`,
+      fechaSesion: `${formData.fecha_sesion}T00:00:00.000Z`,
       horaInicio: {
         hour: parseInt(horaInicioHour),
         minute: parseInt(horaInicioMinute),

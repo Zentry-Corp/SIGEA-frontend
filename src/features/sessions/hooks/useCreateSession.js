@@ -27,13 +27,17 @@ export const useCreateSession = () => {
     setLoading(true);
     setError(null);
     try {
-      // Transformar datos al formato esperado por el backend
+      // Transformar datos al formato esperado por el backend (camelCase)
       const transformedPayload = {
         ...payload,
         horaInicio: formatTimeForBackend(payload.horaInicio),
         horaFin: formatTimeForBackend(payload.horaFin),
-        fecha_sesion: dateToISO(payload.fecha_sesion)
+        fechaSesion: dateToISO(payload.fechaSesion || payload.fecha_sesion),
+        linkVirtual: payload.linkVirtual || payload.link_virtual || ''
       };
+      // Eliminar campos snake_case duplicados si existen
+      delete transformedPayload.fecha_sesion;
+      delete transformedPayload.link_virtual;
 
       console.log('📤 Payload original:', payload);
       console.log('📤 Payload transformado:', transformedPayload);

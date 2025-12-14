@@ -35,9 +35,11 @@ const timeToString = (timeValue) => {
 };
 
 // Función para convertir fecha a formato "YYYY-MM-DD"
-// Soporta: string ISO, string "YYYY-MM-DD", array [year, month, day]
+// Soporta: string ISO, string "YYYY-MM-DD", array [year, month, day], objeto {year, month, day}
 const dateToString = (dateValue) => {
   if (!dateValue) return '';
+
+  console.log('🗓️ Procesando fecha:', dateValue, typeof dateValue);
 
   // Si ya es string en formato correcto YYYY-MM-DD
   if (typeof dateValue === 'string') {
@@ -67,6 +69,16 @@ const dateToString = (dateValue) => {
     return `${year}-${month}-${day}`;
   }
 
+  // Si es objeto { year, month, day } o { year, monthValue, dayOfMonth } (Java LocalDate)
+  if (typeof dateValue === 'object' && dateValue !== null) {
+    const year = dateValue.year;
+    const month = dateValue.month || dateValue.monthValue;
+    const day = dateValue.day || dateValue.dayOfMonth;
+    if (year && month && day) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+  }
+
   return '';
 };
 
@@ -90,14 +102,20 @@ export const useFetchSessions = (actividadId) => {
       const data = await sessionsApi.listarPorActividad(actividadId);
       console.log('📥 Sesiones obtenidas:', data);
 
-      // Transformar datos del backend al formato del formulario
+      // Transformar datos del backend al formato del formulario (camelCase)
       const transformedSessions = Array.isArray(data)
-        ? data.map(session => ({
-          ...session,
-          horaInicio: timeToString(session.horaInicio),
-          horaFin: timeToString(session.horaFin),
-          fecha_sesion: dateToString(session.fecha_sesion)
-        }))
+        ? data.map(session => {
+          // El backend ahora usa camelCase: fechaSesion, linkVirtual
+          const rawFecha = session.fechaSesion || session.fecha_sesion || session.fecha;
+
+          return {
+            ...session,
+            horaInicio: timeToString(session.horaInicio),
+            horaFin: timeToString(session.horaFin),
+            fechaSesion: dateToString(rawFecha),
+            linkVirtual: session.linkVirtual || session.link_virtual || ''
+          };
+        })
         : [];
 
       setSessions(transformedSessions);

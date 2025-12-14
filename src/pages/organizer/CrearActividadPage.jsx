@@ -19,6 +19,7 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import OrganizerLayout from './OrganizerLayout';
 import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
 import { useCreateActivity } from '../../features/activities/hooks/useCreateActivity';
+import { bannersApi } from '../../features/activities/api';
 
 
 
@@ -134,46 +135,36 @@ const CrearActividadPage = () => {
     setUploadingBanner(true);
 
     try {
-      const token = sessionStorage.getItem('sigea_token');
-      const uploadFormData = new FormData();
-      uploadFormData.append('imagen', file);
+      // Usar el servicio de API de banners
+      const data = await bannersApi.subir(file);
 
-      console.log('📤 Subiendo banner...');
+      if (data.url) {
+        // Construir la URL completa usando la variable de entorno
+        const bannerUrl = bannersApi.obtenerUrl(data.url.split('/').pop());
 
-      const response = await fetch('https://sigeabackend.zentrycorp.dev/api/v1/actividad/banner', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: uploadFormData
-      });
-
-      const data = await response.json();
-      console.log('📥 Respuesta upload:', data);
-
-      if (response.ok && data.url) {
         setFormData(prev => ({
           ...prev,
-          bannerUrl: `https://sigeabackend.zentrycorp.dev${data.url}`
-
+          bannerUrl: bannerUrl
         }));
 
         setSuccessBannerModal({
           open: true,
           message: 'Banner subido exitosamente'
         });
-
-
       } else {
-        alert(`❌ Error: ${data.message || 'No se pudo subir el banner'}`);
+        throw new Error('No se recibió URL del banner');
       }
     } catch (error) {
-      console.error('Error al subir banner:', error);
+      console.error('❌ Error al subir banner:', error);
+
+      const errorMessage = error.response?.data?.message
+        || error.message
+        || 'Error al subir el banner. Por favor, inténtalo de nuevo';
+
       setErrorModal({
         open: true,
-        message: 'Error al subir el banner. Por favor, inténtalo de nuevo'
+        message: errorMessage
       });
-
     } finally {
       setUploadingBanner(false);
     }

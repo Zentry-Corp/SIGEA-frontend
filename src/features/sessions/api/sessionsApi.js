@@ -42,6 +42,8 @@ export const sessionsApi = {
       return response.data;
     } catch (error) {
       console.error('❌ Error al actualizar sesión:', error);
+      console.error('❌ Response status:', error.response?.status);
+      console.error('❌ Response data (JSON):', JSON.stringify(error.response?.data, null, 2));
       throw error;
     }
   },

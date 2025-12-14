@@ -2,23 +2,17 @@
 import { useState } from 'react';
 import { sessionsApi } from '../api/sessionsApi';
 
-// Función para convertir "HH:MM" a objeto { hour, minute, second, nano }
-const timeStringToObject = (timeString) => {
+// Función para convertir "HH:MM" a "HH:MM:SS" (formato string esperado por el backend)
+const timeStringToHHMMSS = (timeString) => {
   if (!timeString) return null;
-  const [hour, minute] = timeString.split(':').map(Number);
-  return {
-    hour: hour || 0,
-    minute: minute || 0,
-    second: 0,
-    nano: 0
-  };
+  if (timeString.split(':').length === 3) return timeString;
+  return `${timeString}:00`;
 };
 
-// Función para convertir "YYYY-MM-DD" a formato ISO completo
+// Función para convertir "YYYY-MM-DD" a formato ISO con hora local
 const dateToISO = (dateString) => {
   if (!dateString) return null;
-  const date = new Date(dateString + 'T00:00:00.000Z');
-  return date.toISOString();
+  return `${dateString}T12:00:00`;
 };
 
 export const useUpdateSession = () => {
@@ -30,12 +24,22 @@ export const useUpdateSession = () => {
     setError(null);
 
     try {
-      // Transformar datos al formato esperado por el backend
+      // Transformar datos al formato esperado por el backend PUT /sesiones/actualizar/{id}
+      // Campos: actividadId, titulo, descripcion, ponente, modalidad, linkVirtual, orden, 
+      //         fechaSesion, lugarSesion, horaInicio, horaFin
       const transformedData = {
-        ...sessionData,
-        horaInicio: timeStringToObject(sessionData.horaInicio),
-        horaFin: timeStringToObject(sessionData.horaFin),
-        fecha_sesion: dateToISO(sessionData.fecha_sesion)
+        actividadId: sessionData.actividadId,
+        titulo: sessionData.titulo,
+        descripcion: sessionData.descripcion,
+        ponente: sessionData.ponente,
+        modalidad: sessionData.modalidad,
+        orden: sessionData.orden,
+        lugarSesion: sessionData.lugarSesion || '',
+        // Campos que requieren transformación
+        horaInicio: timeStringToHHMMSS(sessionData.horaInicio),
+        horaFin: timeStringToHHMMSS(sessionData.horaFin),
+        fechaSesion: dateToISO(sessionData.fechaSesion || sessionData.fecha_sesion),
+        linkVirtual: sessionData.linkVirtual || sessionData.link_virtual || ''
       };
 
       console.log(`📝 Actualizando sesión ${sessionId}:`, transformedData);

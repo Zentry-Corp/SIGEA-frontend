@@ -52,13 +52,13 @@ const GestionarSesionesPage = () => {
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
-    fecha_sesion: '',
+    fechaSesion: '',
     horaInicio: '',
     horaFin: '',
     modalidad: '',
     ponente: '',
     lugarSesion: '',
-    link_virtual: '',
+    linkVirtual: '',
     orden: 1
   });
 
@@ -90,13 +90,13 @@ const GestionarSesionesPage = () => {
     setFormData({
       titulo: '',
       descripcion: '',
-      fecha_sesion: '',
+      fechaSesion: '',
       horaInicio: '',
       horaFin: '',
       modalidad: '',
       ponente: '',
       lugarSesion: '',
-      link_virtual: '',
+      linkVirtual: '',
       orden: sessions.length + 1
     });
     setErrors({});
@@ -115,7 +115,7 @@ const GestionarSesionesPage = () => {
       if (value === 'VIRTUAL') {
         setFormData(prev => ({ ...prev, lugarSesion: '' }));
       } else if (value === 'PRESENCIAL') {
-        setFormData(prev => ({ ...prev, link_virtual: '' }));
+        setFormData(prev => ({ ...prev, linkVirtual: '' }));
       }
     }
   };
@@ -125,7 +125,7 @@ const GestionarSesionesPage = () => {
 
     if (!formData.titulo.trim()) newErrors.titulo = 'El título es obligatorio';
     if (!formData.descripcion.trim()) newErrors.descripcion = 'La descripción es obligatoria';
-    if (!formData.fecha_sesion) newErrors.fecha_sesion = 'La fecha es obligatoria';
+    if (!formData.fechaSesion) newErrors.fechaSesion = 'La fecha es obligatoria';
     if (!formData.horaInicio) newErrors.horaInicio = 'La hora de inicio es obligatoria';
     if (!formData.horaFin) newErrors.horaFin = 'La hora de fin es obligatoria';
     if (!formData.modalidad) newErrors.modalidad = 'La modalidad es obligatoria';
@@ -143,13 +143,13 @@ const GestionarSesionesPage = () => {
       newErrors.lugarSesion = 'El lugar es obligatorio para modalidad presencial';
     }
 
-    if (formData.modalidad === 'VIRTUAL' && !formData.link_virtual.trim()) {
-      newErrors.link_virtual = 'El link es obligatorio para modalidad virtual';
+    if (formData.modalidad === 'VIRTUAL' && !formData.linkVirtual.trim()) {
+      newErrors.linkVirtual = 'El link es obligatorio para modalidad virtual';
     }
 
     if (formData.modalidad === 'HIBRIDA') {
       if (!formData.lugarSesion.trim()) newErrors.lugarSesion = 'El lugar es obligatorio';
-      if (!formData.link_virtual.trim()) newErrors.link_virtual = 'El link es obligatorio';
+      if (!formData.linkVirtual.trim()) newErrors.linkVirtual = 'El link es obligatorio';
     }
 
     setErrors(newErrors);
@@ -172,13 +172,13 @@ const GestionarSesionesPage = () => {
     const payload = {
       titulo: formData.titulo,
       descripcion: formData.descripcion,
-      fecha_sesion: formData.fecha_sesion,
+      fechaSesion: formData.fechaSesion,
       horaInicio: formData.horaInicio,
       horaFin: formData.horaFin,
       modalidad: formData.modalidad,
       ponente: formData.ponente,
-      orden: String(formData.orden), // Backend espera string según Swagger
-      actividadId: actividadId // ← UUID string, no parseInt!
+      orden: String(formData.orden),
+      actividadId: actividadId
     };
 
     if (formData.modalidad === 'PRESENCIAL' || formData.modalidad === 'HIBRIDA') {
@@ -186,7 +186,7 @@ const GestionarSesionesPage = () => {
     }
 
     if (formData.modalidad === 'VIRTUAL' || formData.modalidad === 'HIBRIDA') {
-      payload.link_virtual = formData.link_virtual;
+      payload.linkVirtual = formData.linkVirtual;
     }
 
     try {
@@ -222,13 +222,13 @@ const GestionarSesionesPage = () => {
     setFormData({
       titulo: session.titulo,
       descripcion: session.descripcion,
-      fecha_sesion: session.fecha_sesion,
+      fechaSesion: session.fechaSesion,
       horaInicio: session.horaInicio,
       horaFin: session.horaFin,
       modalidad: session.modalidad,
       ponente: session.ponente,
       lugarSesion: session.lugarSesion || '',
-      link_virtual: session.link_virtual || '',
+      linkVirtual: session.linkVirtual || '',
       orden: session.orden
     });
     setEditingSession(session);
@@ -388,12 +388,12 @@ const GestionarSesionesPage = () => {
                     <Label><FiCalendar size={16} /> Fecha <Required>*</Required></Label>
                     <Input
                       type="date"
-                      name="fecha_sesion"
-                      value={formData.fecha_sesion}
+                      name="fechaSesion"
+                      value={formData.fechaSesion}
                       onChange={handleInputChange}
-                      $hasError={!!errors.fecha_sesion}
+                      $hasError={!!errors.fechaSesion}
                     />
-                    {errors.fecha_sesion && <ErrorMessage>{errors.fecha_sesion}</ErrorMessage>}
+                    {errors.fechaSesion && <ErrorMessage>{errors.fechaSesion}</ErrorMessage>}
                   </FormGroup>
 
                   <FormGroup>
@@ -464,13 +464,13 @@ const GestionarSesionesPage = () => {
                       <Label><FiLink size={16} /> Link Virtual <Required>*</Required></Label>
                       <Input
                         type="url"
-                        name="link_virtual"
+                        name="linkVirtual"
                         placeholder="https://..."
-                        value={formData.link_virtual}
+                        value={formData.linkVirtual}
                         onChange={handleInputChange}
-                        $hasError={!!errors.link_virtual}
+                        $hasError={!!errors.linkVirtual}
                       />
-                      {errors.link_virtual && <ErrorMessage>{errors.link_virtual}</ErrorMessage>}
+                      {errors.linkVirtual && <ErrorMessage>{errors.linkVirtual}</ErrorMessage>}
                     </FormGroup>
                   </FormRow>
                 )}
@@ -541,7 +541,7 @@ const GestionarSesionesPage = () => {
                   </DetailItem>
                   <DetailItem>
                     <FiCalendar />
-                    <span>{formatDate(session.fecha_sesion)}</span>
+                    <span>{formatDate(session.fechaSesion)}</span>
                   </DetailItem>
                   <DetailItem>
                     <FiClock />
@@ -555,11 +555,11 @@ const GestionarSesionesPage = () => {
                   )}
                 </SessionDetails>
 
-                {session.link_virtual && (
+                {session.linkVirtual && (
                   <VirtualLink>
                     <LinkLabel>Link:</LinkLabel>
-                    <LinkValue href={session.link_virtual} target="_blank">
-                      {session.link_virtual}
+                    <LinkValue href={session.linkVirtual} target="_blank">
+                      {session.linkVirtual}
                     </LinkValue>
                   </VirtualLink>
                 )}
