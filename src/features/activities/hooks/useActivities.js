@@ -11,14 +11,6 @@ export const useActivities = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetch = async () => {
-      const { data } = await activitiesApi.getAll();
-      setActivities(data);
-    };
-    fetch();
-  }, []);
-
   // Filtros
   const [filters, setFilters] = useState({
     tipo: 'todos',

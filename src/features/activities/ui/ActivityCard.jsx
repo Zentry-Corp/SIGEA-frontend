@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useSessionsByActivity } from "@/features/sessions/hooks/useSessionsByActivity";
-import { FiList } from "react-icons/fi";
+
 
 const ActivityCard = ({
   activity,
@@ -60,6 +60,14 @@ const ActivityCard = ({
         bg: "#F9FAFB",
         borderColor: "#E5E7EB",
         label: "Suspendido",
+      },
+      PUBLICADO:{
+        color: "#2563EB",
+        bg: "#EFF6FF",
+        borderColor: "#BFDBFE",
+        
+
+
       },
       // Mantener compatibilidad con estados anteriores
       PRESENCIAL: {
@@ -140,21 +148,18 @@ const ActivityCard = ({
           </InfoItem>
 
           <InfoItem>
-            <InfoLabel>Hora de Inicio</InfoLabel>
-            <InfoValue>{activity.horaInicio}</InfoValue>
-          </InfoItem>
-
-          <InfoItem>
             <InfoLabel>Sesiones</InfoLabel>
-            <InfoValue>
-              {loadingSesiones ? (
-                "Cargando..."
-              ) : (
-                <>
-                  <FiList style={{ marginRight: "6px" }} />
-                  {sesiones.length}
-                </>
-              )}
+            <InfoValue
+              style={{
+                color: sesiones.length === 0 ? "#94a3b8" : "#0f172a",
+                fontWeight: sesiones.length === 0 ? 500 : 600,
+              }}
+            >
+              {loadingSesiones
+                ? "Cargando..."
+                : sesiones.length === 0
+                ? "Aún sin sesiones"
+                : sesiones.length}
             </InfoValue>
           </InfoItem>
 
@@ -183,7 +188,7 @@ const ActivityCard = ({
           $variant="secondary"
           $accentColor={estadoConfig.color}
         >
-          sesiones
+          Sesiones
         </ActionButton>
 
         <ActionButtons>
@@ -342,19 +347,19 @@ const TitleSection = styled.div`
 `;
 
 const Title = styled.h3`
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 12px 0;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
+  font-size: 1.4rem; /* no 1.75rem */
+  font-weight: 600; /* no 700 */
+  color: #0f172a; /* OK, pero no más oscuro */
+
+  margin: 0 0 8px 0;
+  line-height: 1.35;
 `;
 
 const Description = styled.p`
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.6;
-  margin: 0;
+  font-size: 0.875rem;
+  color: #94a3b8; // ↓ más suave
+  line-height: 1.5;
+  max-width: 90%;
 `;
 
 const InfoSection = styled.div`
@@ -414,43 +419,25 @@ const ActionButtons = styled.div`
 `;
 
 const ActionButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: ${(props) => {
-    if (props.$variant === "primary") return props.$accentColor || "#5B7FFF";
-    return "transparent";
-  }};
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  background: ${(props) =>
+    props.$variant === "primary"
+      ? props.$accentColor || "#5B7FFF"
+      : "transparent"};
+
   border: ${(props) =>
     props.$variant === "primary"
       ? "none"
-      : `2px solid ${props.$accentColor || "#5B7FFF"}`};
-  border-radius: 10px;
+      : `1px solid ${props.$accentColor || "#5B7FFF"}`};
+
   color: ${(props) =>
     props.$variant === "primary" ? "#ffffff" : props.$accentColor || "#5B7FFF"};
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  flex: 1;
-  position: relative;
-  overflow: hidden;
 
-  /* Efecto de brillo sutil al hacer hover */
-  &::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s ease, height 0.6s ease;
-  }
+  transition: background 0.2s ease, color 0.2s ease;
 
   &:hover {
     background: ${(props) => {

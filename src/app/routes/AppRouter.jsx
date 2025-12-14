@@ -14,7 +14,8 @@ import CrearSesionPage from "../../pages/organizer/CrearSesionPage";
 import PrivateRoute from "./PrivateRoute";
 import RoleRoute from "./RoleRoute";
 import { useAuth } from "../../features/auth/hooks/useAuth";
-import EditarActividadPage from '../../pages/organizer/EditarActividadPage';
+import EditarActividadPage from "../../pages/organizer/EditarActividadPage";
+import PagosPage from '../../pages/organizer/PagosPage';
 
 // Componente para redirigir según rol
 const RoleRedirect = () => {
@@ -135,6 +136,18 @@ function AppRouter() {
             <PrivateRoute>
               <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <EditarActividadPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Pagos */}
+        <Route
+          path="/organizador/pagos"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
+                <PagosPage />
               </RoleRoute>
             </PrivateRoute>
           }

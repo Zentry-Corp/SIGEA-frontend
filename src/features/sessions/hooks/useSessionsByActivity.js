@@ -1,28 +1,34 @@
-import { useEffect, useState } from 'react';
-import { sessionsApi } from '../api/sessionsApi';
+import { useEffect, useState } from "react";
+import { sessionsApi } from "../api/sessionsApi";
 
-export const useSessionsByActivity = (actividadId) => {
-  const [sesiones, setSesiones] = useState([]);
-  const [loading, setLoading] = useState(true);
+export const useSessionsByActivity = (activityId) => {
+  const [sesiones, setSesiones] = useState([]); // 👈 SIEMPRE []
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!actividadId) return;
+    if (!activityId) return;
 
-    const fetch = async () => {
+    const fetchSessions = async () => {
+      setLoading(true);
       try {
-        const data = await sessionsApi.listarPorActividad(actividadId);
-        setSesiones(data);
+        const data = await sessionsApi.listarPorActividad(activityId);
+        setSesiones(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error('❌ Error al cargar sesiones:', err);
+        console.error("❌ Error al cargar sesiones:", err);
         setError(err);
+        setSesiones([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetch();
-  }, [actividadId]);
+    fetchSessions();
+  }, [activityId]);
 
-  return { sesiones, loading, error };
+  return {
+    sesiones,
+    loading,
+    error,
+  };
 };

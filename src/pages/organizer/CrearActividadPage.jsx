@@ -306,7 +306,7 @@ const CrearActividadPage = () => {
         <Header>
           <HeaderContent>
             <Title>Crear Nueva Actividad</Title>
-            <Subtitle>Configura y publica un nuevo evento o curso</Subtitle>
+            <Subtitle>Configura y publica un nueva actividad ciclo de coferencias, talleres y más</Subtitle>
 
           </HeaderContent>
         </Header>
@@ -667,15 +667,15 @@ const HeaderContent = styled.div``;
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 8px;
+  color: #0f172a; /* mejor que #1a1a1a */
 `;
+
 
 const Subtitle = styled.p`
   font-size: 1rem;
-  color: #6b7280;
-  margin-bottom: 4px;
+  color: #475569;
 `;
+
 
 const Breadcrumb = styled.div`
   font-size: 0.9rem;

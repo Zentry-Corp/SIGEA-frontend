@@ -136,6 +136,17 @@ const ActividadesPage = () => {
             </NewActivityButton>
           </Header>
 
+           {/* ACTIVIDADES GRID */}
+          {!loading && !error && (
+            <>
+              <ResultsHeader>
+                <ResultsTitle>Mis actividades</ResultsTitle>
+                <ResultsCount>
+                  Mostrando <strong>{activities.length}</strong>{" "}
+                  {activities.length === 1 ? "actividad" : "actividades"}
+                </ResultsCount>
+              </ResultsHeader>
+
           {/* FILTROS */}
           {!loading && !error && (
             <ActivityFilters
@@ -165,16 +176,6 @@ const ActividadesPage = () => {
             </ErrorContainer>
           )}
 
-          {/* ACTIVIDADES GRID */}
-          {!loading && !error && (
-            <>
-              <ResultsHeader>
-                <ResultsTitle>Mis actividades</ResultsTitle>
-                <ResultsCount>
-                  Mostrando <strong>{activities.length}</strong>{" "}
-                  {activities.length === 1 ? "actividad" : "actividades"}
-                </ResultsCount>
-              </ResultsHeader>
 
               {activities.length > 0 ? (
                 <ActivitiesGrid>
