@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiHome, FiCalendar, FiUsers, FiAward, FiLogOut, FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiUsers, FiAward, FiLogOut, FiDollarSign, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const OrganizerSidebar = () => {
@@ -24,12 +24,17 @@ const OrganizerSidebar = () => {
     {
       path: '/organizador/actividades',
       icon: FiCalendar,
-      label: 'Gestión de Actividades',
+      label: 'Actividades',
     },
     {
       path: '/organizador/participantes',
       icon: FiUsers,
-      label: 'Participantes y Asistencia',
+      label: 'Asistencias',
+    },
+    {
+      path: '/organizador/pagos',
+      icon: FiDollarSign,
+      label: 'Pagos',
     },
     {
       path: '/organizador/certificacion',
@@ -42,7 +47,7 @@ const OrganizerSidebar = () => {
 
   const handleNavigation = (path) => {
     navigate(path);
-    setIsOpen(false); // Cerrar sidebar en mobile después de navegar
+    setIsOpen(false);
   };
 
   return (
@@ -56,7 +61,7 @@ const OrganizerSidebar = () => {
 
           <MobileUserInfo>
             <MobileAvatar>
-              {user?.nombres?.[0] || user?.correo?.[0].toUpperCase() || 'U'}
+              {user?.nombres?.[0] || user?.correo?.[0]?.toUpperCase() || 'U'}
             </MobileAvatar>
             <MobileUserDetails>
               <MobileUserName>{user?.nombres || 'Usuario'}</MobileUserName>
@@ -74,7 +79,7 @@ const OrganizerSidebar = () => {
         <Header>
           <UserInfo>
             <Avatar>
-              {user?.nombres?.[0] || user?.correo?.[0].toUpperCase() || 'U'}
+              {user?.nombres?.[0] || user?.correo?.[0]?.toUpperCase() || 'U'}
             </Avatar>
             <UserDetails>
               <UserName>{user?.nombres || 'Usuario'}</UserName>
@@ -110,7 +115,7 @@ const OrganizerSidebar = () => {
   );
 };
 
-// Styled Components
+// Styled Components - Diseño Claro
 const MobileHeader = styled.div`
   display: none;
   position: fixed;
@@ -119,9 +124,9 @@ const MobileHeader = styled.div`
   right: 0;
   height: 70px;
   background: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e8ecf3;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   @media (max-width: 968px) {
     display: block;
@@ -141,9 +146,9 @@ const HamburgerButton = styled.button`
   width: 44px;
   height: 44px;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  color: #1a1a2e;
+  border: 1px solid #e8ecf3;
+  border-radius: 12px;
+  color: #374151;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -153,18 +158,18 @@ const HamburgerButton = styled.button`
 
   &:hover {
     background: #f1f5f9;
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 `;
 
 const MobileUserInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
   justify-content: flex-end;
@@ -174,7 +179,7 @@ const MobileAvatar = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4f7cff 0%, #3b63e0 100%);
+  background: linear-gradient(135deg, #4F7CFF 0%, #3B63E0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,7 +187,6 @@ const MobileAvatar = styled.div`
   font-weight: 600;
   font-size: 1rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(79, 124, 255, 0.25);
 `;
 
 const MobileUserDetails = styled.div`
@@ -217,7 +221,7 @@ const Overlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.3);
   backdrop-filter: blur(4px);
   z-index: 998;
   opacity: ${props => props.$isOpen ? '1' : '0'};
@@ -232,14 +236,13 @@ const Overlay = styled.div`
 const SidebarContainer = styled.div`
   width: 260px;
   height: 100vh;
-  background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   position: fixed;
   left: 0;
   top: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  border-right: 1px solid #e8ecf3;
   z-index: 999;
   transition: transform 0.3s ease;
 
@@ -247,42 +250,36 @@ const SidebarContainer = styled.div`
     top: 70px;
     height: calc(100vh - 70px);
     transform: translateX(${props => props.$isOpen ? '0' : '-100%'});
-    box-shadow: ${props => props.$isOpen ? '8px 0 32px rgba(0, 0, 0, 0.3)' : 'none'};
+    box-shadow: ${props => props.$isOpen ? '4px 0 24px rgba(0, 0, 0, 0.08)' : 'none'};
   }
 `;
 
 const Header = styled.div`
-  padding: 32px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.2);
+  padding: 24px 20px;
+  border-bottom: 1px solid #f1f5f9;
 `;
 
 const UserInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
   border-radius: 14px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
+  border: 1px solid #f1f5f9;
 `;
 
 const Avatar = styled.div`
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4f7cff 0%, #3b63e0 100%);
+  background: linear-gradient(135deg, #4F7CFF 0%, #3B63E0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 1.25rem;
-  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.35);
+  font-size: 1.125rem;
   flex-shrink: 0;
 `;
 
@@ -292,60 +289,70 @@ const UserDetails = styled.div`
 `;
 
 const UserName = styled.div`
-  color: white;
-  font-size: 1.0625rem;
+  color: #1a1a2e;
+  font-size: 0.9375rem;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
 const UserRole = styled.div`
-  color: #94a3b8;
-  font-size: 0.875rem;
+  color: #64748b;
+  font-size: 0.8125rem;
   font-weight: 500;
 `;
 
 const Nav = styled.nav`
   flex: 1;
-  padding: 24px 16px;
+  padding: 20px 14px;
   overflow-y: auto;
 
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
+    background: transparent;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: #e2e8f0;
     border-radius: 10px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
   }
 `;
 
 const NavItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 13px 16px;
-  border-radius: 10px;
-  color: ${props => props.$active ? 'white' : '#94a3b8'};
-  background: ${props => props.$active ? 'rgba(79, 124, 255, 0.15)' : 'transparent'};
-  border-left: 3px solid ${props => props.$active ? '#4f7cff' : 'transparent'};
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-size: 0.9375rem;
-  font-weight: ${props => props.$active ? '600' : '500'};
   position: relative;
+  
+  /* Estado activo */
+  color: ${props => props.$active ? '#4F7CFF' : '#64748b'};
+  background: ${props => props.$active ? 'rgba(79, 124, 255, 0.08)' : 'transparent'};
+  font-weight: ${props => props.$active ? '600' : '500'};
+
+  /* Indicador lateral activo */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: ${props => props.$active ? '24px' : '0'};
+    background: #4F7CFF;
+    border-radius: 0 4px 4px 0;
+    transition: height 0.2s ease;
+  }
 
   svg {
     flex-shrink: 0;
@@ -357,39 +364,29 @@ const NavItem = styled.div`
   }
 
   &:hover {
-    background: ${props => props.$active ? 'rgba(79, 124, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
-    color: white;
-    transform: translateX(4px);
-
-    svg {
-      transform: scale(1.1);
-    }
+    background: ${props => props.$active ? 'rgba(79, 124, 255, 0.12)' : '#f8fafc'};
+    color: ${props => props.$active ? '#4F7CFF' : '#374151'};
   }
 
   &:active {
-    transform: translateX(2px) scale(0.98);
+    transform: scale(0.98);
   }
-
-  ${props => props.$active && `
-    box-shadow: 0 2px 8px rgba(79, 124, 255, 0.2);
-  `}
 `;
 
 const Footer = styled.div`
-  padding: 20px 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.2);
+  padding: 16px 14px 24px;
+  border-top: 1px solid #f1f5f9;
 `;
 
 const LogoutButton = styled.button`
   width: 100%;
-  padding: 13px 16px;
+  padding: 12px 16px;
   background: transparent;
-  border: 1px solid rgba(255, 107, 107, 0.2);
-  border-radius: 10px;
-  color: #ff6b6b;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #ef4444;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -402,30 +399,13 @@ const LogoutButton = styled.button`
   }
 
   &:hover {
-    background: rgba(255, 107, 107, 0.1);
-    border-color: #ff6b6b;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+    background: #fef2f2;
+    border-color: #ef4444;
   }
 
   &:active {
-    transform: translateY(0) scale(0.98);
+    transform: scale(0.98);
   }
 `;
 
 export default OrganizerSidebar;
-
-/* 
-  NOTA IMPORTANTE: Para que el contenido principal no quede detrás del header en mobile,
-  debes agregar padding/margin en el componente que envuelve el contenido:
-
-  const MainContent = styled.div`
-    margin-left: 260px;  // Ancho del sidebar
-    min-height: 100vh;
-    
-    @media (max-width: 968px) {
-      margin-left: 0;
-      padding-top: 70px;  // Altura del header mobile
-    }
-  `;
-*/

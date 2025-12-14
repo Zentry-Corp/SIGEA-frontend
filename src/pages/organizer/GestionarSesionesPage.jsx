@@ -1,9 +1,9 @@
 // src/pages/organizer/GestionarSesionesPage.jsx
 // Página completa para gestionar sesiones de una actividad
 
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
   FiTrash2,
@@ -19,17 +19,22 @@ import {
   FiVideo,
   FiHome,
   FiMonitor,
-  FiInfo
-} from 'react-icons/fi';
-import { useParams, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import OrganizerLayout from './OrganizerLayout';
-import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
-import { useCreateSession } from '../../features/sessions/hooks/useCreateSession';
-import { useFetchSessions } from '../../features/sessions/hooks/useFetchSessions';
-import { useDeleteSession } from '../../features/sessions/hooks/useDeleteSession';
-import { useUpdateSession } from '../../features/sessions/hooks/useUpdateSession';
+  FiInfo,
+} from "react-icons/fi";
+import { useParams, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import OrganizerLayout from "./OrganizerLayout";
+import {
+  AlertError,
+  AlertSuccess,
+  AlertWarning,
+  AlertConfirmDelete,
+} from "@/shared/ui/components/Alert";
+import { useCreateSession } from "../../features/sessions/hooks/useCreateSession";
+import { useFetchSessions } from "../../features/sessions/hooks/useFetchSessions";
+import { useDeleteSession } from "../../features/sessions/hooks/useDeleteSession";
+import { useUpdateSession } from "../../features/sessions/hooks/useUpdateSession";
 
 const GestionarSesionesPage = () => {
   const { actividadId } = useParams();
@@ -42,7 +47,7 @@ const GestionarSesionesPage = () => {
     sessions,
     loading: sessionsLoading,
     error: sessionsError,
-    fetchSessions
+    fetchSessions,
   } = useFetchSessions(actividadId);
 
   const { createSession } = useCreateSession();
@@ -50,34 +55,40 @@ const GestionarSesionesPage = () => {
   const { updateSession } = useUpdateSession();
 
   const [formData, setFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    fechaSesion: '',
-    horaInicio: '',
-    horaFin: '',
-    modalidad: '',
-    ponente: '',
-    lugarSesion: '',
-    linkVirtual: '',
-    orden: 1
+    titulo: "",
+    descripcion: "",
+    fechaSesion: "",
+    horaInicio: "",
+    horaFin: "",
+    modalidad: "",
+    ponente: "",
+    lugarSesion: "",
+    linkVirtual: "",
+    orden: 1,
   });
 
   const [errors, setErrors] = useState({});
 
   // Modales
   const [errorModal, setErrorModal] = useState({ open: false, message: "" });
-  const [successModal, setSuccessModal] = useState({ open: false, message: "" });
-  const [warningModal, setWarningModal] = useState({ open: false, message: "" });
+  const [successModal, setSuccessModal] = useState({
+    open: false,
+    message: "",
+  });
+  const [warningModal, setWarningModal] = useState({
+    open: false,
+    message: "",
+  });
   const [deleteWarningModal, setDeleteWarningModal] = useState({
     open: false,
     message: "",
-    sessionId: null
+    sessionId: null,
   });
 
   const modalidades = [
-    { value: 'PRESENCIAL', label: 'Presencial', icon: FiHome },
-    { value: 'VIRTUAL', label: 'Virtual', icon: FiVideo },
-    { value: 'HIBRIDA', label: 'Híbrida', icon: FiMonitor }  // Backend usa HIBRIDA
+    { value: "PRESENCIAL", label: "Presencial", icon: FiHome },
+    { value: "VIRTUAL", label: "Virtual", icon: FiVideo },
+    { value: "HIBRIDA", label: "Híbrida", icon: FiMonitor }, // Backend usa HIBRIDA
   ];
 
   useEffect(() => {
@@ -88,16 +99,16 @@ const GestionarSesionesPage = () => {
 
   const resetForm = () => {
     setFormData({
-      titulo: '',
-      descripcion: '',
-      fechaSesion: '',
-      horaInicio: '',
-      horaFin: '',
-      modalidad: '',
-      ponente: '',
-      lugarSesion: '',
-      linkVirtual: '',
-      orden: sessions.length + 1
+      titulo: "",
+      descripcion: "",
+      fechaSesion: "",
+      horaInicio: "",
+      horaFin: "",
+      modalidad: "",
+      ponente: "",
+      lugarSesion: "",
+      linkVirtual: "",
+      orden: sessions.length + 1,
     });
     setErrors({});
     setEditingSession(null);
@@ -105,17 +116,17 @@ const GestionarSesionesPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
-    if (name === 'modalidad') {
-      if (value === 'VIRTUAL') {
-        setFormData(prev => ({ ...prev, lugarSesion: '' }));
-      } else if (value === 'PRESENCIAL') {
-        setFormData(prev => ({ ...prev, linkVirtual: '' }));
+    if (name === "modalidad") {
+      if (value === "VIRTUAL") {
+        setFormData((prev) => ({ ...prev, lugarSesion: "" }));
+      } else if (value === "PRESENCIAL") {
+        setFormData((prev) => ({ ...prev, linkVirtual: "" }));
       }
     }
   };
@@ -123,33 +134,44 @@ const GestionarSesionesPage = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.titulo.trim()) newErrors.titulo = 'El título es obligatorio';
-    if (!formData.descripcion.trim()) newErrors.descripcion = 'La descripción es obligatoria';
-    if (!formData.fechaSesion) newErrors.fechaSesion = 'La fecha es obligatoria';
-    if (!formData.horaInicio) newErrors.horaInicio = 'La hora de inicio es obligatoria';
-    if (!formData.horaFin) newErrors.horaFin = 'La hora de fin es obligatoria';
-    if (!formData.modalidad) newErrors.modalidad = 'La modalidad es obligatoria';
-    if (!formData.ponente.trim()) newErrors.ponente = 'El ponente es obligatorio';
+    if (!formData.titulo.trim()) newErrors.titulo = "El título es obligatorio";
+    if (!formData.descripcion.trim())
+      newErrors.descripcion = "La descripción es obligatoria";
+    if (!formData.fechaSesion)
+      newErrors.fechaSesion = "La fecha es obligatoria";
+    if (!formData.horaInicio)
+      newErrors.horaInicio = "La hora de inicio es obligatoria";
+    if (!formData.horaFin) newErrors.horaFin = "La hora de fin es obligatoria";
+    if (!formData.modalidad)
+      newErrors.modalidad = "La modalidad es obligatoria";
+    if (!formData.ponente.trim())
+      newErrors.ponente = "El ponente es obligatorio";
 
     if (formData.horaInicio && formData.horaFin) {
-      const [hI, mI] = formData.horaInicio.split(':');
-      const [hF, mF] = formData.horaFin.split(':');
-      if ((parseInt(hF) * 60 + parseInt(mF)) <= (parseInt(hI) * 60 + parseInt(mI))) {
-        newErrors.horaFin = 'La hora de fin debe ser posterior a la de inicio';
+      const [hI, mI] = formData.horaInicio.split(":");
+      const [hF, mF] = formData.horaFin.split(":");
+      if (
+        parseInt(hF) * 60 + parseInt(mF) <=
+        parseInt(hI) * 60 + parseInt(mI)
+      ) {
+        newErrors.horaFin = "La hora de fin debe ser posterior a la de inicio";
       }
     }
 
-    if (formData.modalidad === 'PRESENCIAL' && !formData.lugarSesion.trim()) {
-      newErrors.lugarSesion = 'El lugar es obligatorio para modalidad presencial';
+    if (formData.modalidad === "PRESENCIAL" && !formData.lugarSesion.trim()) {
+      newErrors.lugarSesion =
+        "El lugar es obligatorio para modalidad presencial";
     }
 
-    if (formData.modalidad === 'VIRTUAL' && !formData.linkVirtual.trim()) {
-      newErrors.linkVirtual = 'El link es obligatorio para modalidad virtual';
+    if (formData.modalidad === "VIRTUAL" && !formData.linkVirtual.trim()) {
+      newErrors.linkVirtual = "El link es obligatorio para modalidad virtual";
     }
 
-    if (formData.modalidad === 'HIBRIDA') {
-      if (!formData.lugarSesion.trim()) newErrors.lugarSesion = 'El lugar es obligatorio';
-      if (!formData.linkVirtual.trim()) newErrors.linkVirtual = 'El link es obligatorio';
+    if (formData.modalidad === "HIBRIDA") {
+      if (!formData.lugarSesion.trim())
+        newErrors.lugarSesion = "El lugar es obligatorio";
+      if (!formData.linkVirtual.trim())
+        newErrors.linkVirtual = "El link es obligatorio";
     }
 
     setErrors(newErrors);
@@ -162,7 +184,7 @@ const GestionarSesionesPage = () => {
     if (!validateForm()) {
       setErrorModal({
         open: true,
-        message: "⚠️ Por favor completa todos los campos obligatorios"
+        message: "⚠️ Por favor completa todos los campos obligatorios",
       });
       return;
     }
@@ -178,14 +200,17 @@ const GestionarSesionesPage = () => {
       modalidad: formData.modalidad,
       ponente: formData.ponente,
       orden: String(formData.orden),
-      actividadId: actividadId
+      actividadId: actividadId,
     };
 
-    if (formData.modalidad === 'PRESENCIAL' || formData.modalidad === 'HIBRIDA') {
+    if (
+      formData.modalidad === "PRESENCIAL" ||
+      formData.modalidad === "HIBRIDA"
+    ) {
       payload.lugarSesion = formData.lugarSesion;
     }
 
-    if (formData.modalidad === 'VIRTUAL' || formData.modalidad === 'HIBRIDA') {
+    if (formData.modalidad === "VIRTUAL" || formData.modalidad === "HIBRIDA") {
       payload.linkVirtual = formData.linkVirtual;
     }
 
@@ -194,24 +219,23 @@ const GestionarSesionesPage = () => {
         await updateSession(editingSession.id, payload);
         setSuccessModal({
           open: true,
-          message: "✅ Sesión actualizada exitosamente"
+          message: "✅ Sesión actualizada exitosamente",
         });
       } else {
         await createSession(payload);
         setSuccessModal({
           open: true,
-          message: "🎉 Sesión creada exitosamente"
+          message: "🎉 Sesión creada exitosamente",
         });
       }
 
       resetForm();
       setShowForm(false);
       fetchSessions();
-
     } catch (error) {
       setErrorModal({
         open: true,
-        message: error.message || "Error al guardar la sesión"
+        message: error.message || "Error al guardar la sesión",
       });
     } finally {
       setLoading(false);
@@ -222,14 +246,14 @@ const GestionarSesionesPage = () => {
     setFormData({
       titulo: session.titulo,
       descripcion: session.descripcion,
-      fechaSesion: session.fechaSesion.split('T')[0],
+      fechaSesion: session.fechaSesion.split("T")[0],
       horaInicio: session.horaInicio,
       horaFin: session.horaFin,
       modalidad: session.modalidad,
       ponente: session.ponente,
-      lugarSesion: session.lugarSesion || '',
-      linkVirtual: session.linkVirtual || '',
-      orden: session.orden
+      lugarSesion: session.lugarSesion || "",
+      linkVirtual: session.linkVirtual || "",
+      orden: session.orden,
     });
     setEditingSession(session);
     setShowForm(true);
@@ -238,8 +262,9 @@ const GestionarSesionesPage = () => {
   const handleDelete = async (sessionId) => {
     setDeleteWarningModal({
       open: true,
-      message: "¿Estás seguro de eliminar esta sesión? Esta acción no se puede deshacer.",
-      sessionId
+      message:
+        "¿Estás seguro de eliminar esta sesión? Esta acción no se puede deshacer.",
+      sessionId,
     });
   };
 
@@ -248,13 +273,13 @@ const GestionarSesionesPage = () => {
       await deleteSession(deleteWarningModal.sessionId);
       setSuccessModal({
         open: true,
-        message: "🗑️ Sesión eliminada exitosamente"
+        message: "🗑️ Sesión eliminada exitosamente",
       });
       fetchSessions();
     } catch (error) {
       setErrorModal({
         open: true,
-        message: error.message || "Error al eliminar la sesión"
+        message: error.message || "Error al eliminar la sesión",
       });
     } finally {
       setDeleteWarningModal({ open: false, message: "", sessionId: null });
@@ -263,7 +288,7 @@ const GestionarSesionesPage = () => {
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'd MMM yyyy', { locale: es });
+      return format(new Date(dateString), "d MMM yyyy", { locale: es });
     } catch {
       return dateString;
     }
@@ -271,11 +296,11 @@ const GestionarSesionesPage = () => {
 
   const getModalidadColor = (modalidad) => {
     const colors = {
-      PRESENCIAL: '#1e40af',
-      VIRTUAL: '#065f46',
-      HIBRIDA: '#92400e',
+      PRESENCIAL: "#1e40af",
+      VIRTUAL: "#065f46",
+      HIBRIDA: "#92400e",
     };
-    return colors[modalidad] || '#475569';
+    return colors[modalidad] || "#475569";
   };
 
   return (
@@ -308,19 +333,20 @@ const GestionarSesionesPage = () => {
             <FormCard
               as={motion.div}
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
             >
               <FormHeader>
                 <FormTitle>
                   <FiInfo />
-                  {editingSession ? 'Editar Sesión' : 'Nueva Sesión'}
+                  {editingSession ? "Editar Sesión" : "Nueva Sesión"}
                 </FormTitle>
                 <CloseFormButton
                   onClick={() => {
                     setWarningModal({
                       open: true,
-                      message: "¿Cancelar? Los cambios no guardados se perderán."
+                      message:
+                        "¿Cancelar? Los cambios no guardados se perderán.",
                     });
                   }}
                 >
@@ -331,7 +357,9 @@ const GestionarSesionesPage = () => {
               <Form onSubmit={handleSubmit}>
                 <FormRow>
                   <FormGroup>
-                    <Label>Título <Required>*</Required></Label>
+                    <Label>
+                      Título <Required>*</Required>
+                    </Label>
                     <Input
                       name="titulo"
                       placeholder="Ej: Introducción a la Sostenibilidad"
@@ -339,13 +367,17 @@ const GestionarSesionesPage = () => {
                       onChange={handleInputChange}
                       $hasError={!!errors.titulo}
                     />
-                    {errors.titulo && <ErrorMessage>{errors.titulo}</ErrorMessage>}
+                    {errors.titulo && (
+                      <ErrorMessage>{errors.titulo}</ErrorMessage>
+                    )}
                   </FormGroup>
                 </FormRow>
 
                 <FormRow>
                   <FormGroup>
-                    <Label>Descripción <Required>*</Required></Label>
+                    <Label>
+                      Descripción <Required>*</Required>
+                    </Label>
                     <Textarea
                       name="descripcion"
                       rows={3}
@@ -354,13 +386,17 @@ const GestionarSesionesPage = () => {
                       onChange={handleInputChange}
                       $hasError={!!errors.descripcion}
                     />
-                    {errors.descripcion && <ErrorMessage>{errors.descripcion}</ErrorMessage>}
+                    {errors.descripcion && (
+                      <ErrorMessage>{errors.descripcion}</ErrorMessage>
+                    )}
                   </FormGroup>
                 </FormRow>
 
                 <FormRow $columns={2}>
                   <FormGroup>
-                    <Label><FiUser size={16} /> Ponente <Required>*</Required></Label>
+                    <Label>
+                      <FiUser size={16} /> Ponente <Required>*</Required>
+                    </Label>
                     <Input
                       name="ponente"
                       placeholder="Nombre del ponente"
@@ -368,11 +404,15 @@ const GestionarSesionesPage = () => {
                       onChange={handleInputChange}
                       $hasError={!!errors.ponente}
                     />
-                    {errors.ponente && <ErrorMessage>{errors.ponente}</ErrorMessage>}
+                    {errors.ponente && (
+                      <ErrorMessage>{errors.ponente}</ErrorMessage>
+                    )}
                   </FormGroup>
 
                   <FormGroup>
-                    <Label>Orden <Required>*</Required></Label>
+                    <Label>
+                      Orden <Required>*</Required>
+                    </Label>
                     <Input
                       type="number"
                       name="orden"
@@ -385,7 +425,9 @@ const GestionarSesionesPage = () => {
 
                 <FormRow $columns={3}>
                   <FormGroup>
-                    <Label><FiCalendar size={16} /> Fecha <Required>*</Required></Label>
+                    <Label>
+                      <FiCalendar size={16} /> Fecha <Required>*</Required>
+                    </Label>
                     <Input
                       type="date"
                       name="fechaSesion"
@@ -393,11 +435,15 @@ const GestionarSesionesPage = () => {
                       onChange={handleInputChange}
                       $hasError={!!errors.fechaSesion}
                     />
-                    {errors.fechaSesion && <ErrorMessage>{errors.fechaSesion}</ErrorMessage>}
+                    {errors.fechaSesion && (
+                      <ErrorMessage>{errors.fechaSesion}</ErrorMessage>
+                    )}
                   </FormGroup>
 
                   <FormGroup>
-                    <Label><FiClock size={16} /> Inicio <Required>*</Required></Label>
+                    <Label>
+                      <FiClock size={16} /> Inicio <Required>*</Required>
+                    </Label>
                     <Input
                       type="time"
                       name="horaInicio"
@@ -405,11 +451,15 @@ const GestionarSesionesPage = () => {
                       onChange={handleInputChange}
                       $hasError={!!errors.horaInicio}
                     />
-                    {errors.horaInicio && <ErrorMessage>{errors.horaInicio}</ErrorMessage>}
+                    {errors.horaInicio && (
+                      <ErrorMessage>{errors.horaInicio}</ErrorMessage>
+                    )}
                   </FormGroup>
 
                   <FormGroup>
-                    <Label><FiClock size={16} /> Fin <Required>*</Required></Label>
+                    <Label>
+                      <FiClock size={16} /> Fin <Required>*</Required>
+                    </Label>
                     <Input
                       type="time"
                       name="horaFin"
@@ -417,35 +467,46 @@ const GestionarSesionesPage = () => {
                       onChange={handleInputChange}
                       $hasError={!!errors.horaFin}
                     />
-                    {errors.horaFin && <ErrorMessage>{errors.horaFin}</ErrorMessage>}
+                    {errors.horaFin && (
+                      <ErrorMessage>{errors.horaFin}</ErrorMessage>
+                    )}
                   </FormGroup>
                 </FormRow>
 
                 <FormRow>
                   <FormGroup>
-                    <Label>Modalidad <Required>*</Required></Label>
+                    <Label>
+                      Modalidad <Required>*</Required>
+                    </Label>
                     <ModalidadContainer>
                       {modalidades.map((mod) => (
                         <ModalidadCard
                           key={mod.value}
                           $selected={formData.modalidad === mod.value}
-                          onClick={() => handleInputChange({
-                            target: { name: 'modalidad', value: mod.value }
-                          })}
+                          onClick={() =>
+                            handleInputChange({
+                              target: { name: "modalidad", value: mod.value },
+                            })
+                          }
                         >
                           <mod.icon size={20} />
                           {mod.label}
                         </ModalidadCard>
                       ))}
                     </ModalidadContainer>
-                    {errors.modalidad && <ErrorMessage>{errors.modalidad}</ErrorMessage>}
+                    {errors.modalidad && (
+                      <ErrorMessage>{errors.modalidad}</ErrorMessage>
+                    )}
                   </FormGroup>
                 </FormRow>
 
-                {(formData.modalidad === 'PRESENCIAL' || formData.modalidad === 'HIBRIDA') && (
+                {(formData.modalidad === "PRESENCIAL" ||
+                  formData.modalidad === "HIBRIDA") && (
                   <FormRow>
                     <FormGroup>
-                      <Label><FiMapPin size={16} /> Lugar <Required>*</Required></Label>
+                      <Label>
+                        <FiMapPin size={16} /> Lugar <Required>*</Required>
+                      </Label>
                       <Input
                         name="lugarSesion"
                         placeholder="Ej: Auditorio Principal"
@@ -453,15 +514,20 @@ const GestionarSesionesPage = () => {
                         onChange={handleInputChange}
                         $hasError={!!errors.lugarSesion}
                       />
-                      {errors.lugarSesion && <ErrorMessage>{errors.lugarSesion}</ErrorMessage>}
+                      {errors.lugarSesion && (
+                        <ErrorMessage>{errors.lugarSesion}</ErrorMessage>
+                      )}
                     </FormGroup>
                   </FormRow>
                 )}
 
-                {(formData.modalidad === 'VIRTUAL' || formData.modalidad === 'HIBRIDA') && (
+                {(formData.modalidad === "VIRTUAL" ||
+                  formData.modalidad === "HIBRIDA") && (
                   <FormRow>
                     <FormGroup>
-                      <Label><FiLink size={16} /> Link Virtual <Required>*</Required></Label>
+                      <Label>
+                        <FiLink size={16} /> Link Virtual <Required>*</Required>
+                      </Label>
                       <Input
                         type="url"
                         name="linkVirtual"
@@ -470,7 +536,9 @@ const GestionarSesionesPage = () => {
                         onChange={handleInputChange}
                         $hasError={!!errors.linkVirtual}
                       />
-                      {errors.linkVirtual && <ErrorMessage>{errors.linkVirtual}</ErrorMessage>}
+                      {errors.linkVirtual && (
+                        <ErrorMessage>{errors.linkVirtual}</ErrorMessage>
+                      )}
                     </FormGroup>
                   </FormRow>
                 )}
@@ -481,7 +549,8 @@ const GestionarSesionesPage = () => {
                     onClick={() => {
                       setWarningModal({
                         open: true,
-                        message: "¿Cancelar? Los cambios no guardados se perderán."
+                        message:
+                          "¿Cancelar? Los cambios no guardados se perderán.",
                       });
                     }}
                   >
@@ -496,7 +565,11 @@ const GestionarSesionesPage = () => {
                     whileTap={{ scale: loading ? 1 : 0.98 }}
                   >
                     <FiSave size={18} />
-                    {loading ? 'Guardando...' : editingSession ? 'Actualizar' : 'Crear'}
+                    {loading
+                      ? "Guardando..."
+                      : editingSession
+                      ? "Actualizar"
+                      : "Crear"}
                   </SubmitButton>
                 </FormActions>
               </Form>
@@ -511,7 +584,9 @@ const GestionarSesionesPage = () => {
             <EmptyState>
               <EmptyIcon>📋</EmptyIcon>
               <EmptyText>No hay sesiones</EmptyText>
-              <EmptySubtext>Haz clic en "Nueva Sesión" para comenzar</EmptySubtext>
+              <EmptySubtext>
+                Haz clic en "Nueva Sesión" para comenzar
+              </EmptySubtext>
             </EmptyState>
           ) : (
             sessions.map((session) => (
@@ -525,7 +600,10 @@ const GestionarSesionesPage = () => {
                     <ActionButton onClick={() => handleEdit(session)}>
                       <FiEdit2 />
                     </ActionButton>
-                    <ActionButton $delete onClick={() => handleDelete(session.id)}>
+                    <ActionButton
+                      $delete
+                      onClick={() => handleDelete(session.id)}
+                    >
                       <FiTrash2 />
                     </ActionButton>
                   </SessionActions>
@@ -545,7 +623,9 @@ const GestionarSesionesPage = () => {
                   </DetailItem>
                   <DetailItem>
                     <FiClock />
-                    <span>{session.horaInicio} - {session.horaFin}</span>
+                    <span>
+                      {session.horaInicio} - {session.horaFin}
+                    </span>
                   </DetailItem>
                   {session.lugarSesion && (
                     <DetailItem>
@@ -592,10 +672,12 @@ const GestionarSesionesPage = () => {
         }}
       />
 
-      <AlertWarning
+      <AlertConfirmDelete
         open={deleteWarningModal.open}
         message={deleteWarningModal.message}
-        onCancel={() => setDeleteWarningModal({ open: false, message: "", sessionId: null })}
+        onCancel={() =>
+          setDeleteWarningModal({ open: false, message: "", sessionId: null })
+        }
         onConfirm={confirmDelete}
       />
     </OrganizerLayout>
@@ -719,10 +801,12 @@ const Form = styled.form`
 
 const FormRow = styled.div`
   display: grid;
-  grid-template-columns: ${props =>
-    props.$columns === 2 ? 'repeat(2, 1fr)' :
-      props.$columns === 3 ? 'repeat(3, 1fr)' :
-        '1fr'};
+  grid-template-columns: ${(props) =>
+    props.$columns === 2
+      ? "repeat(2, 1fr)"
+      : props.$columns === 3
+      ? "repeat(3, 1fr)"
+      : "1fr"};
   gap: 16px;
 
   @media (max-width: 768px) {
@@ -751,7 +835,7 @@ const Required = styled.span`
 
 const Input = styled.input`
   padding: 10px 14px;
-  border: 2px solid ${props => props.$hasError ? '#ef4444' : '#e5e7eb'};
+  border: 2px solid ${(props) => (props.$hasError ? "#ef4444" : "#e5e7eb")};
   border-radius: 8px;
   font-size: 0.9rem;
   color: #1a1a1a;
@@ -759,8 +843,10 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#ef4444' : '#4f7cff'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(79, 124, 255, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#ef4444" : "#4f7cff")};
+    box-shadow: 0 0 0 3px
+      ${(props) =>
+        props.$hasError ? "rgba(239, 68, 68, 0.1)" : "rgba(79, 124, 255, 0.1)"};
   }
 
   &::placeholder {
@@ -770,7 +856,7 @@ const Input = styled.input`
 
 const Textarea = styled.textarea`
   padding: 10px 14px;
-  border: 2px solid ${props => props.$hasError ? '#ef4444' : '#e5e7eb'};
+  border: 2px solid ${(props) => (props.$hasError ? "#ef4444" : "#e5e7eb")};
   border-radius: 8px;
   font-size: 0.9rem;
   color: #1a1a1a;
@@ -780,8 +866,10 @@ const Textarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#ef4444' : '#4f7cff'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(79, 124, 255, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#ef4444" : "#4f7cff")};
+    box-shadow: 0 0 0 3px
+      ${(props) =>
+        props.$hasError ? "rgba(239, 68, 68, 0.1)" : "rgba(79, 124, 255, 0.1)"};
   }
 
   &::placeholder {
@@ -801,9 +889,9 @@ const ModalidadContainer = styled.div`
 
 const ModalidadCard = styled.div`
   padding: 12px;
-  border: 2px solid ${props => props.$selected ? '#4f7cff' : '#e5e7eb'};
+  border: 2px solid ${(props) => (props.$selected ? "#4f7cff" : "#e5e7eb")};
   border-radius: 8px;
-  background: ${props => props.$selected ? '#f0f5ff' : 'white'};
+  background: ${(props) => (props.$selected ? "#f0f5ff" : "white")};
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -814,12 +902,12 @@ const ModalidadCard = styled.div`
   font-weight: 600;
 
   svg {
-    color: ${props => props.$selected ? '#4f7cff' : '#6b7280'};
+    color: ${(props) => (props.$selected ? "#4f7cff" : "#6b7280")};
   }
 
   &:hover {
     border-color: #4f7cff;
-    background: ${props => props.$selected ? '#f0f5ff' : '#f9fafb'};
+    background: ${(props) => (props.$selected ? "#f0f5ff" : "#f9fafb")};
   }
 `;
 
@@ -909,18 +997,18 @@ const SessionHeader = styled.div`
 const SessionNumber = styled.div`
   font-size: 0.85rem;
   font-weight: 700;
-  color: #5B7CFF;
+  color: #5b7cff;
   text-transform: uppercase;
 `;
 
 const ModalidadBadge = styled.div`
   padding: 4px 10px;
-  background: ${props => `${props.$color}15`};
-  border: 1px solid ${props => props.$color};
+  background: ${(props) => `${props.$color}15`};
+  border: 1px solid ${(props) => props.$color};
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: ${props => props.$color};
+  color: ${(props) => props.$color};
   text-transform: uppercase;
 `;
 
@@ -936,16 +1024,16 @@ const ActionButton = styled.button`
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: ${props => props.$delete ? '#FEE2E2' : '#ffffff'};
-  border: 1px solid ${props => props.$delete ? '#FCA5A5' : '#e5e7eb'};
+  background: ${(props) => (props.$delete ? "#FEE2E2" : "#ffffff")};
+  border: 1px solid ${(props) => (props.$delete ? "#FCA5A5" : "#e5e7eb")};
   border-radius: 6px;
-  color: ${props => props.$delete ? '#DC2626' : '#6b7280'};
+  color: ${(props) => (props.$delete ? "#DC2626" : "#6b7280")};
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.$delete ? '#DC2626' : '#5B7CFF'};
-    border-color: ${props => props.$delete ? '#DC2626' : '#5B7CFF'};
+    background: ${(props) => (props.$delete ? "#DC2626" : "#5B7CFF")};
+    border-color: ${(props) => (props.$delete ? "#DC2626" : "#5B7CFF")};
     color: #ffffff;
   }
 `;
@@ -978,7 +1066,7 @@ const DetailItem = styled.div`
   color: #374151;
 
   svg {
-    color: #5B7CFF;
+    color: #5b7cff;
     flex-shrink: 0;
   }
 
@@ -990,20 +1078,20 @@ const DetailItem = styled.div`
 const VirtualLink = styled.div`
   margin-top: 12px;
   padding: 12px;
-  background: #E0E7FF;
+  background: #e0e7ff;
   border-radius: 8px;
 `;
 
 const LinkLabel = styled.div`
   font-size: 0.8rem;
   font-weight: 600;
-  color: #3730A3;
+  color: #3730a3;
   margin-bottom: 4px;
 `;
 
 const LinkValue = styled.a`
   font-size: 0.85rem;
-  color: #4F46E5;
+  color: #4f46e5;
   text-decoration: none;
   word-break: break-all;
 

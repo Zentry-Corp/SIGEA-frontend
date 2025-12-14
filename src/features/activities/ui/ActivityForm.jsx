@@ -15,11 +15,11 @@ import {
   FiList
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../features/auth/hooks/useAuth';
-import OrganizerLayout from './OrganizerLayout';
+import { useAuth } from '../../auth/hooks/useAuth';
+import OrganizerLayout from '../../../pages/organizer/OrganizerLayout';
 import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
-import { useCreateActivity } from '../../features/activities/hooks/useCreateActivity';
-import { bannersApi } from '../../features/activities/api';
+import { useCreateActivity } from '../../../features/activities/hooks/useCreateActivity';
+import { bannersApi } from '../../../features/activities/api';
 
 
 
@@ -215,81 +215,16 @@ const CrearActividadPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  if (!validateForm()) return;
 
-    if (!validateForm()) {
-      setErrorModal({
-        open: true,
-        message: "⚠️ Por favor completa todos los campos obligatorios",
-      });
-      return;
-    }
+  const payload = buildPayload(formData);
 
-    setLoading(true);
+  onSubmit(payload);
+};
 
-    // 🔥 Construimos el payload ANTES del try/catch para evitar errores de scope
-    const payload = {
-      titulo: formData.titulo,
-      descripcion: formData.descripcion,
-      fechaInicio: formData.fechaInicio,
-      fechaFin: formData.fechaFin,
-      horaInicio: formData.horaInicio,
-      horaFin: formData.horaFin,
-      organizadorId: formData.organizadorId,
-      tipoActividadId: formData.tipoActividadId,
-      ubicacion: formData.ubicacion,
-    };
-
-    if (formData.estadoId) payload.estadoId = formData.estadoId;
-    if (formData.coOrganizador) payload.coOrganizador = formData.coOrganizador;
-    if (formData.sponsor) payload.sponsor = formData.sponsor;
-    if (formData.bannerUrl) payload.bannerUrl = formData.bannerUrl;
-    if (formData.numeroYape) payload.numeroYape = formData.numeroYape;
-
-    console.log("📤 Payload limpio:", payload);
-
-    try {
-      const response = await createActivity(payload);
-      console.log("🧪 organizadorId:", formData.organizadorId);
-      console.log("🧪 tipoActividadId:", typeof payload.tipoActividadId, payload.tipoActividadId);
-
-      console.log("🧾 Respuesta del backend:", response);
-
-      if (!response?.id) {
-        throw new Error("La actividad no fue creada correctamente. Falta ID en la respuesta.");
-      }
-
-      setSuccessActivityModal({
-        open: true,
-        message: "🎉 La actividad ha sido creada exitosamente.",
-      });
-
-
-      // retrasar la navegación hasta que cierre el modal
-      setTimeout(() => {
-        navigate("/organizador/actividades");
-      }, 1500);
-
-    } catch (error) {
-      console.error("❌ Error completo:", error);
-
-      const errorMessage =
-        error.response?.data?.descripcion ||
-        error.response?.data?.message ||
-        error.message ||
-        "Error desconocido";
-
-      setErrorModal({
-        open: true,
-        message: errorMessage,
-      });
-
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
   const handleCancel = () => {
@@ -306,7 +241,7 @@ const CrearActividadPage = () => {
         <Header>
           <HeaderContent>
             <Title>Crear Nueva Actividad</Title>
-            <Subtitle>Configura y publica un nueva actividad ciclo de coferencias, talleres y más</Subtitle>
+            <Subtitle>Configura y publica un nuevo evento o curso</Subtitle>
 
           </HeaderContent>
         </Header>
@@ -667,15 +602,15 @@ const HeaderContent = styled.div``;
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: #0f172a; /* mejor que #1a1a1a */
+  color: #1a1a1a;
+  margin-bottom: 8px;
 `;
-
 
 const Subtitle = styled.p`
   font-size: 1rem;
-  color: #475569;
+  color: #6b7280;
+  margin-bottom: 4px;
 `;
-
 
 const Breadcrumb = styled.div`
   font-size: 0.9rem;
