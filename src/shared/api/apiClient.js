@@ -13,6 +13,8 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('sigea_token');
 
+    console.log('🧪 HEADERS FINALES:', config.headers);
+
     // 🔍 DEBUG: Verificar si el token se está adjuntando
     console.log('🔐 [API Request]', {
       url: config.url,

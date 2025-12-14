@@ -222,7 +222,7 @@ const GestionarSesionesPage = () => {
     setFormData({
       titulo: session.titulo,
       descripcion: session.descripcion,
-      fechaSesion: session.fechaSesion,
+      fechaSesion: session.fechaSesion.split('T')[0],
       horaInicio: session.horaInicio,
       horaFin: session.horaFin,
       modalidad: session.modalidad,
