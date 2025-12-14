@@ -21,6 +21,7 @@ import {
   FiMonitor,
   FiInfo,
   FiExternalLink,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -322,6 +323,10 @@ const GestionarSesionesPage = () => {
       <Container>
         <Header>
           <HeaderContent>
+            <BackButton onClick={() => navigate("/organizador/actividades")}>
+              <FiArrowLeft />
+              <span>Volver</span>
+            </BackButton>
             <Title>Gestión de Sesiones</Title>
             <Subtitle>Administra las sesiones de la actividad</Subtitle>
           </HeaderContent>
@@ -777,6 +782,32 @@ const Header = styled.div`
 `;
 
 const HeaderContent = styled.div``;
+
+const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    color: #4f46e5;
+    border-color: #c7d2fe;
+    background: #f8fafc;
+  }
+`;
 
 const Title = styled.h1`
   font-size: 2rem;
