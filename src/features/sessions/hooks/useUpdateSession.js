@@ -9,11 +9,15 @@ const timeStringToHHMMSS = (timeString) => {
   return `${timeString}:00`;
 };
 
-// Función para convertir "YYYY-MM-DD" a formato ISO con hora local
+// Función para convertir fecha a formato ISO esperado por el backend
+// Soporta: "YYYY-MM-DD", "YYYY-MM-DDTHH:MM:SS", ISO completo, etc.
 const dateToISO = (dateString) => {
   if (!dateString) return null;
-  return `${dateString}T12:00:00`;
+  return new Date(dateString).toISOString();
 };
+
+
+
 
 export const useUpdateSession = () => {
   const [loading, setLoading] = useState(false);
@@ -28,19 +32,35 @@ export const useUpdateSession = () => {
       // Campos: actividadId, titulo, descripcion, ponente, modalidad, linkVirtual, orden, 
       //         fechaSesion, lugarSesion, horaInicio, horaFin
       const transformedData = {
-        actividadId: sessionData.actividadId,
         titulo: sessionData.titulo,
         descripcion: sessionData.descripcion,
         ponente: sessionData.ponente,
         modalidad: sessionData.modalidad,
-        orden: sessionData.orden,
-        lugarSesion: sessionData.lugarSesion || '',
-        // Campos que requieren transformación
+        orden: String(sessionData.orden),
         horaInicio: timeStringToHHMMSS(sessionData.horaInicio),
         horaFin: timeStringToHHMMSS(sessionData.horaFin),
-        fechaSesion: dateToISO(sessionData.fechaSesion || sessionData.fecha_sesion),
-        linkVirtual: sessionData.linkVirtual || sessionData.link_virtual || ''
+        fechaSesion: dateToISO(sessionData.fechaSesion),
       };
+
+      if (sessionData.modalidad === 'PRESENCIAL') {
+        transformedData.lugarSesion = sessionData.lugarSesion;
+      }
+
+      if (sessionData.modalidad === 'VIRTUAL') {
+        transformedData.linkVirtual = sessionData.linkVirtual;
+      }
+
+      if (sessionData.modalidad === 'HIBRIDA') {
+        transformedData.lugarSesion = sessionData.lugarSesion;
+        transformedData.linkVirtual = sessionData.linkVirtual;
+      }
+
+      Object.keys(transformedData).forEach(
+        key => transformedData[key] == null && delete transformedData[key]
+      );
+
+      console.log('🧪 PAYLOAD FINAL UPDATE:', JSON.stringify(transformedData, null, 2));
+
 
       console.log(`📝 Actualizando sesión ${sessionId}:`, transformedData);
       const result = await sessionsApi.actualizar(sessionId, transformedData);

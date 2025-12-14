@@ -8,9 +8,11 @@ import { useNavigate } from 'react-router-dom';
 
 import OrganizerSidebar from './OrganizerSidebar';
 import { useActivities } from '../../features/activities/hooks/useActivities';
+import { useDeleteActivity } from '../../features/activities/hooks/useDeleteActivity';
 import ActivityCard from '../../features/activities/ui/ActivityCard';
 import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
 import ActivityFilters from '../../features/activities/ui/ActivityFilters';
+import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
 
 const ActividadesPage = () => {
   const navigate = useNavigate();
@@ -39,13 +41,56 @@ const ActividadesPage = () => {
     setIsModalOpen(false);
     setTimeout(() => setSelectedActivity(null), 200);
   };
-  
-
-const handleAddSession = (activity) => {
-  navigate(`/organizador/actividades/${activity.id}/sesiones`);
-};
 
 
+  const handleAddSession = (activity) => {
+    navigate(`/organizador/actividades/${activity.id}/sesiones`);
+  };
+
+  // Estados para modales de eliminación
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    activity: null
+  });
+  const [successModal, setSuccessModal] = useState({ open: false, message: "" });
+  const [errorModal, setErrorModal] = useState({ open: false, message: "" });
+
+  // Hook para eliminar actividades
+  const { deleteActivity, loading: deleting } = useDeleteActivity();
+
+  // Handler para iniciar eliminación (muestra modal de confirmación)
+  const handleDelete = (activity) => {
+    setDeleteModal({
+      open: true,
+      activity: activity
+    });
+  };
+
+  // Handler para confirmar eliminación
+  const confirmDelete = async () => {
+    if (!deleteModal.activity) return;
+
+    try {
+      await deleteActivity(deleteModal.activity.id);
+
+      setDeleteModal({ open: false, activity: null });
+      setSuccessModal({
+        open: true,
+        message: `🗑️ La actividad "${deleteModal.activity.titulo}" ha sido eliminada`
+      });
+
+      // Refrescar lista de actividades
+      window.location.reload(); // Temporal - idealmente usar un refetch del hook
+
+    } catch (error) {
+      console.error('❌ Error al eliminar actividad:', error);
+      setDeleteModal({ open: false, activity: null });
+      setErrorModal({
+        open: true,
+        message: error.response?.data?.message || 'Error al eliminar la actividad'
+      });
+    }
+  };
 
   return (
     <>
@@ -123,6 +168,7 @@ const handleAddSession = (activity) => {
                         activity={activity}
                         onViewDetail={handleViewDetail}
                         onAddSession={handleAddSession}
+                        onDelete={handleDelete}
                       />
                     </motion.div>
                   ))}
@@ -154,6 +200,27 @@ const handleAddSession = (activity) => {
         activity={selectedActivity}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      {/* MODALES DE ELIMINACIÓN */}
+      <AlertWarning
+        open={deleteModal.open}
+        message={`¿Estás seguro de eliminar la actividad "${deleteModal.activity?.titulo}"? Esta acción no se puede deshacer.`}
+        onCancel={() => setDeleteModal({ open: false, activity: null })}
+        onConfirm={confirmDelete}
+        confirmText="Sí, eliminar"
+      />
+
+      <AlertSuccess
+        open={successModal.open}
+        message={successModal.message}
+        onClose={() => setSuccessModal({ open: false, message: "" })}
+      />
+
+      <AlertError
+        open={errorModal.open}
+        message={errorModal.message}
+        onClose={() => setErrorModal({ open: false, message: "" })}
       />
     </>
   );

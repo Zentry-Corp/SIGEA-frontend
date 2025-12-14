@@ -1,6 +1,6 @@
 import React from "react";
 
-export const AlertWarning = ({ open, message, onConfirm, onCancel }) => {
+export const AlertWarning = ({ open, message, onConfirm, onCancel, confirmText = "Sí, salir" }) => {
   if (!open) return null;
 
   return (
@@ -61,7 +61,7 @@ export const AlertWarning = ({ open, message, onConfirm, onCancel }) => {
               fontWeight: 600
             }}
           >
-            Sí, salir
+            {confirmText}
           </button>
         </div>
       </div>
