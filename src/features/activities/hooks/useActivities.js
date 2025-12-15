@@ -29,6 +29,8 @@ export const useActivities = () => {
         activitiesApi.listarTipos(), // ← Cambio aquí
         activitiesApi.listarEstados(), // ← Cambio aquí
       ]);
+      console.log(activitiesRes[0]);
+
 
       console.log('✅ Actividades recibidas:', activitiesRes);
       console.log('✅ Tipos recibidos:', tiposRes);
@@ -127,5 +129,8 @@ export const useActivities = () => {
     refetch: fetchData,
   };
 };
+
+
+
 
 export default useActivities;

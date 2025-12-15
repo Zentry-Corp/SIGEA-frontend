@@ -88,15 +88,15 @@ const ActivityFilters = ({
 // Styled Components
 const FiltersContainer = styled.div`
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #edf2f7;
   border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 32px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
 `;
 
 const SearchWrapper = styled.div`
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 `;
 
 const SearchIcon = styled.div`
@@ -111,7 +111,7 @@ const SearchIcon = styled.div`
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 14px 16px 14px 48px;
+  padding: 12px 16px 12px 44px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   font-size: 0.9375rem;
@@ -173,7 +173,7 @@ const FilterLabel = styled.div`
 `;
 
 const Select = styled.select`
-  padding: 10px 36px 10px 14px;
+  padding: 8px 34px 8px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   font-size: 0.9375rem;
@@ -208,7 +208,7 @@ const ClearButton = styled.button`
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   background: transparent;
   border: 1px solid #e2e8f0;
   border-radius: 10px;

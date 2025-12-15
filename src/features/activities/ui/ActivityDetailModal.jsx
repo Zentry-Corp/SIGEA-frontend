@@ -3,7 +3,9 @@
 
 import React, { useEffect } from "react";
 import styled from "styled-components";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
+import { useSessionsByActivity } from "../../sessions";
+import SessionList from "../../sessions/ui/SessionList";
 import {
   FiX,
   FiCalendar,
@@ -13,9 +15,16 @@ import {
   FiPhone,
   FiUsers,
   FiInfo,
-} from 'react-icons/fi';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+  FiEdit3,
+  FiUpload,
+  FiPlayCircle,
+  FiCheckCircle,
+  FiXCircle,
+  FiList,
+  FiPauseCircle,
+} from "react-icons/fi";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
   useEffect(() => {
@@ -31,22 +40,47 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
   }, [isOpen]);
 
   // Helper para obtener color según estado
-  const getEstadoColor = (codigo) => {
-    const colores = {
-      'PRESENCIAL': '#1e40af',  // Azul oscuro
-      'VIRTUAL': '#065f46',     // Verde oscuro
-      'HIBRIDO': '#92400e',     // Naranja oscuro
-      'BORRADOR': '#374151',    // Gris oscuro
-      'PUBLICADO': '#065f46',   // Verde oscuro
-      'FINALIZADO': '#991b1b',  // Rojo oscuro
-    };
-    return colores[codigo] || '#475569'; // Gris por defecto
+  const estadoConfigMap = {
+    BORRADOR: {
+      color: "#6B7280",
+      icon: <FiEdit3 />,
+    },
+    PUBLICADO: {
+      color: "#2563EB",
+      icon: <FiUpload />,
+    },
+    EN_CURSO: {
+      color: "#059669",
+      icon: <FiPlayCircle />,
+    },
+    FINALIZADO: {
+      color: "#6366F1",
+      icon: <FiCheckCircle />,
+    },
+    CANCELADO: {
+      color: "#DC2626",
+      icon: <FiXCircle />,
+    },
+    SUSPENDIDO: {
+      color: "#D97706",
+      icon: <FiPauseCircle />,
+    },
   };
+
+  const getEstadoConfig = (codigo) =>
+    estadoConfigMap[codigo] || {
+      color: "#64748b",
+      icon: <FiEdit3 />,
+    };
+  const { sesiones = [], loading: loadingSesiones } = useSessionsByActivity(
+    activity?.id
+  );
+  
 
   // Helper para formatear fechas
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'd MMM yyyy', { locale: es });
+      return format(new Date(dateString), "d MMM yyyy", { locale: es });
     } catch {
       return dateString;
     }
@@ -54,7 +88,7 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
 
   const formatFullDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'd MMMM yyyy', { locale: es });
+      return format(new Date(dateString), "d MMMM yyyy", { locale: es });
     } catch {
       return dateString;
     }
@@ -89,7 +123,9 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
 
             {/* Header con Imagen */}
             {activity.bannerUrl && (
-              <BannerImage src={activity.bannerUrl} alt={activity.titulo} />
+              <BannerWrapper>
+                <BannerImage src={activity.bannerUrl} alt={activity.titulo} />
+              </BannerWrapper>
             )}
 
             {/* Content */}
@@ -97,7 +133,6 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
               {/* Title Section */}
               <TitleSection>
                 <ActivityTitle>{activity.titulo}</ActivityTitle>
-                <TypeBadge>{activity.tipoActividad?.nombreActividad}</TypeBadge>
               </TitleSection>
 
               {/* Info Cards */}
@@ -118,17 +153,24 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
                   </IconWrapper>
                   <InfoContent>
                     <InfoLabel>Horario</InfoLabel>
-                    <InfoValue>{activity.horaInicio} - {activity.horaFin}</InfoValue>
+                    <InfoValue>
+                      {activity.horaInicio} - {activity.horaFin}
+                    </InfoValue>
                   </InfoContent>
                 </InfoCard>
 
                 <InfoCard>
-                  <IconWrapper $color={getEstadoColor(activity.estado?.codigo)}>
-                    <FiMapPin />
+                  <IconWrapper
+                    $color={getEstadoConfig(activity.estado?.codigo).color}
+                  >
+                    {getEstadoConfig(activity.estado?.codigo).icon}
                   </IconWrapper>
+
                   <InfoContent>
                     <InfoLabel>Estado</InfoLabel>
-                    <InfoValue $color={getEstadoColor(activity.estado?.codigo)}>
+                    <InfoValue
+                      $color={getEstadoConfig(activity.estado?.codigo).color}
+                    >
                       {activity.estado?.etiqueta}
                     </InfoValue>
                   </InfoContent>
@@ -153,7 +195,9 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
                 <DatesGrid>
                   <DateBox>
                     <DateLabel>Fecha de inicio</DateLabel>
-                    <DateValue>{formatFullDate(activity.fechaInicio)}</DateValue>
+                    <DateValue>
+                      {formatFullDate(activity.fechaInicio)}
+                    </DateValue>
                   </DateBox>
                   <DateBox>
                     <DateLabel>Fecha de finalización</DateLabel>
@@ -165,6 +209,19 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
                     <FiMapPin />
                     <span>{activity.ubicacion}</span>
                   </LocationInfo>
+                )}
+              </Section>
+
+              <Section>
+                <SectionHeader>
+                  <FiList />
+                  <SectionTitle>Sesiones</SectionTitle>
+                </SectionHeader>
+
+                {loadingSesiones ? (
+                  <span>Cargando sesiones...</span>
+                ) : (
+                  <SessionList sessions={sesiones} loading={loadingSesiones} />
                 )}
               </Section>
 
@@ -207,9 +264,7 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
               )}
 
               {/* Footer Button */}
-              <FooterButton onClick={onClose}>
-                Cerrar
-              </FooterButton>
+              <FooterButton onClick={onClose}>Cerrar</FooterButton>
             </ModalContent>
           </ModalContainer>
         </ModalWrapper>
@@ -296,14 +351,36 @@ const CloseButton = styled.button`
   }
 `;
 
+const BannerWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  height: 180px; /* antes 240px */
+  overflow: hidden;
+  margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    height: 150px;
+  }
+
+  /* Overlay para bajar agresividad visual */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(15, 23, 42, 0.15),
+      rgba(15, 23, 42, 0.35)
+    );
+    pointer-events: none;
+  }
+`;
+
 const BannerImage = styled.img`
   width: 100%;
-  height: 240px;
+  height: 100%;
   object-fit: cover;
-  
-  @media (max-width: 768px) {
-    height: 200px;
-  }
+  transform: scale(1.02); /* micro zoom para recorte más pro */
 `;
 
 const ModalContent = styled.div`
@@ -335,6 +412,7 @@ const TitleSection = styled.div`
 `;
 
 const ActivityTitle = styled.h2`
+  martin-top: 8px;
   font-size: 1.75rem;
   font-weight: 700;
   color: #1a1a2e;
@@ -357,6 +435,9 @@ const TypeBadge = styled.div`
   color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  opacity: 0.85;
 `;
 
 /* INFO CARDS */
@@ -398,7 +479,7 @@ const IconWrapper = styled.div`
   height: 36px;
   background: #ffffff;
   border-radius: 10px;
-  color: ${props => props.$color || '#5B7CFF'};
+  color: ${(props) => props.$color || "#5B7CFF"};
   flex-shrink: 0;
 
   svg {
@@ -422,8 +503,8 @@ const InfoLabel = styled.div`
 
 const InfoValue = styled.div`
   font-size: 0.9375rem;
-  font-weight: 600;
-  color: ${props => props.$color || '#1a1a2e'};
+  font-weight: ${(p) => (p.$highlight ? 700 : 600)};
+  color: ${(props) => props.$color || "#1a1a2e"};
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
@@ -447,7 +528,7 @@ const SectionHeader = styled.div`
 
   svg {
     font-size: 1.125rem;
-    color: #5B7CFF;
+    color: #5b7cff;
   }
 `;
 
@@ -463,6 +544,7 @@ const Description = styled.p`
   color: #475569;
   line-height: 1.7;
   margin: 0;
+  max-width: 640px;
   white-space: pre-wrap;
 `;
 
@@ -512,7 +594,7 @@ const LocationInfo = styled.div`
 
   svg {
     font-size: 1rem;
-    color: #5B7CFF;
+    color: #5b7cff;
     flex-shrink: 0;
   }
 `;
@@ -525,6 +607,7 @@ const OrganizationContent = styled.div`
 `;
 
 const OrgItem = styled.div`
+  background: #f9fafb; // un poco más claro
   padding: 16px;
   background: #f8fafc;
   border-radius: 12px;
@@ -572,21 +655,26 @@ const PaymentValue = styled.div`
 const FooterButton = styled.button`
   width: 100%;
   padding: 14px;
-  margin-top: 32px;
-  background: #5B7CFF;
-  border: none;
+  margin-top: 24px;
+
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  color: #ffffff;
+
+  color: #0f172a;
   font-size: 0.9375rem;
   font-weight: 600;
+
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #4a6ae8;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
 `;

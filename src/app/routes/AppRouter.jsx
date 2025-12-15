@@ -12,20 +12,17 @@ import CertificacionPage from '../../pages/organizer/CertificacionPage';
 import PrivateRoute from './PrivateRoute';
 import RoleRoute from './RoleRoute';
 import { useAuth } from '../../features/auth/hooks/useAuth';
-import AdminUsersPage from '../../pages/admin/AdminUsersPage';
-import AdminRolesPage from '../../pages/admin/AdminRolesPage';
-
 
 // Componente para redirigir según rol
 const RoleRedirect = () => {
   const { role } = useAuth();
-  
+
   switch (role?.toUpperCase()) {
-    case 'ADMINISTRADOR':
+    case "ADMINISTRADOR":
       return <Navigate to="/admin/dashboard" replace />;
-    case 'ORGANIZADOR':
+    case "ORGANIZADOR":
       return <Navigate to="/organizador/dashboard" replace />;
-    case 'PARTICIPANTE':
+    case "PARTICIPANTE":
       return <Navigate to="/participante/dashboard" replace />;
     default:
       return <Navigate to="/" replace />;
@@ -44,110 +41,124 @@ function AppRouter() {
         <Route path="/dashboard" element={<RoleRedirect />} />
 
         {/* ==================== RUTAS PARTICIPANTE ==================== */}
-        <Route 
-          path="/participante/dashboard" 
+        <Route
+          path="/participante/dashboard"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['PARTICIPANTE']}>
+              <RoleRoute allowedRoles={["PARTICIPANTE"]}>
                 <ParticipantDashboardPage />
               </RoleRoute>
             </PrivateRoute>
-          } 
+          }
         />
 
         {/* ==================== RUTAS ORGANIZADOR ==================== */}
-        
+
         {/* Dashboard */}
-        <Route 
-          path="/organizador/dashboard" 
+        <Route
+          path="/organizador/dashboard"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ORGANIZADOR', 'ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <OrganizerDashboardPage />
               </RoleRoute>
             </PrivateRoute>
-          } 
+          }
         />
 
         {/* Gestión de Actividades - Lista */}
-        <Route 
-          path="/organizador/actividades" 
+        <Route
+          path="/organizador/actividades"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ORGANIZADOR', 'ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <ActividadesPage />
               </RoleRoute>
             </PrivateRoute>
-          } 
+          }
         />
 
         {/* Gestión de Actividades - Crear */}
-        <Route 
-          path="/organizador/actividades/crear" 
+        <Route
+          path="/organizador/actividades/crear"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ORGANIZADOR', 'ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <CrearActividadPage />
               </RoleRoute>
             </PrivateRoute>
-          } 
+          }
+        />
+
+        {/* 📋 LISTAR / GESTIONAR SESIONES */}
+        <Route
+          path="/organizador/actividades/:actividadId/sesiones"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
+                <GestionarSesionesPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
         />
 
         {/* Participantes y Asistencia */}
-        <Route 
-          path="/organizador/participantes" 
+        <Route
+          path="/organizador/participantes"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ORGANIZADOR', 'ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <ParticipantesPage />
               </RoleRoute>
             </PrivateRoute>
-          } 
+          }
         />
 
         {/* Certificación */}
-        <Route 
-          path="/organizador/certificacion" 
+        <Route
+          path="/organizador/certificacion"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ORGANIZADOR', 'ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <CertificacionPage />
               </RoleRoute>
             </PrivateRoute>
-          } 
+          }
+        />
+        {/* Gestión de Actividades - Editar */}
+        <Route
+          path="/organizador/actividades/editar/:id"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
+                <EditarActividadPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Pagos */}
+        <Route
+          path="/organizador/pagos"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
+                <PagosPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
         />
 
         {/* ==================== RUTAS ADMIN ==================== */}
-        <Route 
-          path="/admin/dashboard" 
+        <Route
+          path="/admin/dashboard"
           element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={["ADMINISTRADOR"]}>
                 <AdminDashboardPage />
               </RoleRoute>
             </PrivateRoute>
           } 
-        />
-        <Route
-          path="/admin/usuarios"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={['ADMINISTRADOR']}>
-                <AdminUsersPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/roles"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={['ADMINISTRADOR']}>
-                <AdminRolesPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
         />
 
         {/* ==================== RUTA 404 ==================== */}

@@ -22,6 +22,7 @@ export const PrivateRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    console.log('⛔ Redirect por isAuthenticated = false');
     // Redirigir a landing si no está autenticado
     return <Navigate to="/" replace />;
   }
