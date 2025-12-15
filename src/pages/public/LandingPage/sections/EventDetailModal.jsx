@@ -1,5 +1,5 @@
 // src/pages/public/LandingPage/sections/EventDetailModal.jsx
-// Modal de detalle de evento para la landing page pública
+// Modal de detalle de evento para la landing page pública (sin date-fns)
 
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
@@ -18,16 +18,18 @@ import {
   FiHome,
   FiGlobe,
 } from 'react-icons/fi';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 // ============================================
-// HELPERS
+// HELPERS - JavaScript nativo (sin date-fns)
 // ============================================
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   try {
-    return format(new Date(dateString), 'd MMM yyyy', { locale: es });
+    return new Intl.DateTimeFormat('es-PE', { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric' 
+    }).format(new Date(dateString));
   } catch {
     return dateString;
   }
@@ -36,7 +38,11 @@ const formatDate = (dateString) => {
 const formatFullDate = (dateString) => {
   if (!dateString) return '-';
   try {
-    return format(new Date(dateString), 'dd MMMM yyyy', { locale: es });
+    return new Intl.DateTimeFormat('es-PE', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    }).format(new Date(dateString));
   } catch {
     return dateString;
   }

@@ -342,8 +342,8 @@ const EventsSection = () => {
                   {/* IMAGEN CON OVERLAY Y BADGE FLOTANTE */}
                   <EventImageWrapper>
                     <EventImage>
-                      {activity.imagen ? (
-                        <img src={activity.imagen} alt={activity.titulo} />
+                      {activity.bannerUrl ? (
+                        <img src={activity.bannerUrl} alt={activity.titulo} />
                       ) : (
                         <ImagePlaceholder>
                           <FiCalendar size={40} />

@@ -1,6 +1,6 @@
 // src/features/activities/hooks/usePublicActivities.js
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { activitiesApi } from "../api/activitiesApi";
+import { publicActivitiesApi } from "../api/publicActivitiesApi";
 
 export const usePublicActivities = (options = {}) => {
   const {
@@ -17,7 +17,7 @@ export const usePublicActivities = (options = {}) => {
     setError(null);
 
     try {
-      const res = await activitiesApi.listar();
+      const res = await publicActivitiesApi.listarPublicas();
 
       // backend a veces devuelve array directo o envuelto
       const list = Array.isArray(res) ? res : res?.extraData ?? res?.data ?? [];
