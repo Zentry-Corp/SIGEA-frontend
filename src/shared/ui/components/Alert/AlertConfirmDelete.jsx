@@ -1,4 +1,6 @@
 import React from "react";
+import { FiAlertTriangle } from "react-icons/fi";
+
 
 export const AlertConfirmDelete = ({ open, message, onCancel, onConfirm }) => {
   if (!open) return null;
@@ -27,6 +29,8 @@ export const AlertConfirmDelete = ({ open, message, onCancel, onConfirm }) => {
           animation: "fadeIn 0.2s ease-out",
         }}
       >
+         
+    
         <h3
           style={{
             margin: 0,
@@ -36,7 +40,7 @@ export const AlertConfirmDelete = ({ open, message, onCancel, onConfirm }) => {
             color: "#F59E0B", // 🟠 color advertencia
           }}
         >
-          ⚠️ ¿Estás seguro?
+         <FiAlertTriangle size={22} color="#F59E0B" style={{ marginRight: "8px" }} />         ¿Estás seguro?
         </h3>
 
         <p
