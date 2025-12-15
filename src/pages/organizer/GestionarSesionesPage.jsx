@@ -275,7 +275,7 @@ const GestionarSesionesPage = () => {
       await deleteSession(deleteWarningModal.sessionId);
       setSuccessModal({
         open: true,
-        message: "🗑️ Sesión eliminada exitosamente",
+        message: "Sesión eliminada exitosamente",
       });
       fetchSessions();
     } catch (error) {

@@ -95,7 +95,7 @@ const ActividadesPage = () => {
       // Mostrar éxito
       setSuccessModal({
         open: true,
-        message: `🗑️ La actividad "${modalDelete.actividad.titulo}" ha sido eliminada`,
+        message: `La actividad "${modalDelete.actividad.titulo}" ha sido eliminada`,
       });
     } catch (error) {
       console.error("❌ Error al eliminar actividad:", error);

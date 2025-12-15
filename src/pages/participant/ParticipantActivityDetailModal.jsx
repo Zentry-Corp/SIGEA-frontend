@@ -1,153 +1,196 @@
 // src/pages/participant/ParticipantActivityDetailModal.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { inscriptionsApi } from '../../features/participant/api/inscriptionsApi';
 import { useEnrollmentStatus } from '../../features/participant/hooks/useEnrollmentStatus';
+import { apiClient } from '../../shared/api/apiClient';
 
 const ParticipantActivityDetailModal = ({ activity, isOpen, onClose, onEnrolled }) => {
-    const { user } = useAuth();
-    const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
 
-    const usuarioId = user?.usuarioId || user?.id_usuario || user?.id || '';
-    const actividadId = activity?.id || '';
+  const usuarioId = user?.usuarioId || user?.id_usuario || user?.id || '';
+  const actividadId = activity?.id || '';
 
-    const enrollment = useEnrollmentStatus({
-        usuarioId: usuarioId ? String(usuarioId) : '',
-        actividadId: actividadId ? String(actividadId) : '',
-    });
+  const enrollment = useEnrollmentStatus({
+    usuarioId: usuarioId ? String(usuarioId) : '',
+    actividadId: actividadId ? String(actividadId) : '',
+  });
 
-    const estadoPendienteId = useMemo(() => {
-        return import.meta.env.VITE_ESTADO_INSCRIPCION_PENDIENTE_ID || '';
-    }, []);
+  const [estadoPendienteId, setEstadoPendienteId] = useState('');
+  const [loadingEstadoPendiente, setLoadingEstadoPendiente] = useState(true);
+  const [errorEstadoPendiente, setErrorEstadoPendiente] = useState('');
 
-    const disableReason = useMemo(() => {
-        if (!activity) return 'No hay actividad';
+  useEffect(() => {
+    let isMounted = true;
 
-        // 1) No permitir si terminó
-        if (activity.finalizada) return 'Este evento ya finalizó';
+    const fetchEstadoPendiente = async () => {
+      setLoadingEstadoPendiente(true);
+      setErrorEstadoPendiente('');
 
-        const estado = String(activity?.estado?.codigo || '').toUpperCase();
+      try {
+        const res = await apiClient.get('/estados-inscripcion/obtener/codigo/PENDIENTE');
+        const data = res?.data || null;
 
-        // 2) Estados que NO deben permitir inscripción
-        if (['CANCELADO', 'SUSPENDIDO', 'FINALIZADO'].includes(estado)) {
-            return 'Este evento no permite inscripciones';
+        if (!isMounted) return;
+
+        const id = data && typeof data === 'object' ? data.id || '' : '';
+        setEstadoPendienteId(id);
+
+        if (!id) {
+          setErrorEstadoPendiente('No se encontró el estado de inscripción PENDIENTE.');
         }
+      } catch (e) {
+        if (!isMounted) return;
 
-        // 3) Bloqueo por "activa=false" SOLO si el estado NO es uno que normalmente permite
-        // (evita el caso EN_CURSO + activa=false)
-        if (activity.activa === false && !['EN_CURSO', 'PENDIENTE', 'PUBLICADO'].includes(estado)) {
-            return 'Este evento está inactivo';
+        setErrorEstadoPendiente(
+          e?.message || 'No se pudo obtener el estado de inscripción PENDIENTE.',
+        );
+        setEstadoPendienteId('');
+      } finally {
+        if (isMounted) {
+          setLoadingEstadoPendiente(false);
         }
-
-        // 4) Estados del enrollment
-        if (enrollment.loading) return 'Verificando inscripción...';
-        if (enrollment.inscripcion) return `Ya estás inscrito (${enrollment.status.label})`;
-
-        // 5) Config / usuario
-        if (!estadoPendienteId) return 'Falta configurar VITE_ESTADO_INSCRIPCION_PENDIENTE_ID';
-        if (!usuarioId) return 'No se pudo obtener usuarioId';
-
-        return null;
-    }, [
-        activity,
-        enrollment.loading,
-        enrollment.inscripcion,
-        enrollment.status?.label,
-        estadoPendienteId,
-        usuarioId,
-    ]);
-
-    const canEnroll = !disableReason && !submitting;
-
-    const handleEnroll = async () => {
-  if (!activity) return;
-
-  try {
-    setSubmitting(true);
-
-    const payload = {
-      usuarioId: String(usuarioId || ''),
-      actividadId: String(activity?.id || ''),
-      estadoId: String(estadoPendienteId || ''),
-      fechaInscripcion: new Date().toISOString().slice(0, 10),
+      }
     };
 
-    console.log('📦 payload inscripción:', payload);
+    fetchEstadoPendiente();
 
-    await inscriptionsApi.inscribirme(payload);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-    // refrescar estado en el modal (y opcionalmente refrescar lista afuera)
-    await enrollment.reload();
+  const disableReason = useMemo(() => {
+    if (!activity) return 'No hay actividad';
 
-    if (typeof onEnrolled === 'function') {
-      await onEnrolled();
+    // 1) No permitir si terminó
+    if (activity.finalizada) return 'Este evento ya finalizó';
+
+    const estado = String(activity?.estado?.codigo || '').toUpperCase();
+
+    // 2) Estados que NO deben permitir inscripción
+    if (['CANCELADO', 'SUSPENDIDO', 'FINALIZADO'].includes(estado)) {
+      return 'Este evento no permite inscripciones';
     }
 
-    alert('✅ Inscripción registrada (PENDIENTE/por confirmar)');
-  } catch (e) {
-    alert(`❌ No se pudo inscribir: ${e?.message || 'Error'}`);
-  } finally {
-    setSubmitting(false);
-  }
-};
+    // 3) Bloqueo por "activa=false" SOLO si el estado NO es uno que normalmente permite
+    // (evita el caso EN_CURSO + activa=false)
+    if (activity.activa === false && !['EN_CURSO', 'PENDIENTE', 'PUBLICADO'].includes(estado)) {
+      return 'Este evento está inactivo';
+    }
 
+    // 4) Estados del enrollment
+    if (enrollment.loading) return 'Verificando inscripción...';
+    if (enrollment.inscripcion) return `Ya estás inscrito (${enrollment.status.label})`;
 
+    // 5) Estado PENDIENTE desde backend
+    if (loadingEstadoPendiente) return 'Cargando estado de inscripción...';
+    if (errorEstadoPendiente) return errorEstadoPendiente;
+    if (!estadoPendienteId) return 'No se pudo determinar el estado de inscripción PENDIENTE.';
 
-    
-    return (
-        <>
-            <ActivityDetailModal
-                activity={activity}
-                isOpen={isOpen}
-                onClose={onClose}
-            />
+    // 6) Usuario
+    if (!usuarioId) return 'No se pudo obtener usuarioId';
 
-            {/* Dock flotante: se monta SOLO cuando el modal está abierto */}
-            {isOpen && activity && (
-                <Dock>
-                    <DockInner>
-                        <Left>
-                            <Title>Inscripción</Title>
+    return null;
+  }, [
+    activity,
+    enrollment.loading,
+    enrollment.inscripcion,
+    enrollment.status?.label,
+    errorEstadoPendiente,
+    loadingEstadoPendiente,
+    estadoPendienteId,
+    usuarioId,
+  ]);
 
-                            {enrollment.loading ? (
-                                <Meta>⏳ Verificando tu estado…</Meta>
-                            ) : enrollment.inscripcion ? (
-                                <Meta>
-                                    📌 Estado: <b>{enrollment.status.label}</b>
-                                </Meta>
-                            ) : (
-                                <Meta>✅ Aún no estás inscrito</Meta>
-                            )}
+  const canEnroll = !disableReason && !submitting;
 
-                            {disableReason && !enrollment.inscripcion && (
-                                <Warn>⚠️ {disableReason}</Warn>
-                            )}
-                        </Left>
+  const handleEnroll = async () => {
+    if (!activity) return;
 
-                        <Right>
-                            <PrimaryButton
-                                onClick={handleEnroll}
-                                disabled={!canEnroll}
-                                title={disableReason || ''}
-                            >
-                                {submitting
-                                    ? 'Inscribiendo…'
-                                    : enrollment.inscripcion
-                                        ? 'Ya inscrito'
-                                        : 'Inscribirme'}
-                            </PrimaryButton>
+    if (!estadoPendienteId) {
+      alert(
+        'No se pudo determinar el estado de inscripción PENDIENTE. Intenta nuevamente más tarde.',
+      );
+      return;
+    }
 
-                            <SecondaryButton onClick={onClose}>
-                                Cerrar
-                            </SecondaryButton>
-                        </Right>
-                    </DockInner>
-                </Dock>
-            )}
-        </>
-    );
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        usuarioId: String(usuarioId || ''),
+        actividadId: String(activity?.id || ''),
+        estadoId: String(estadoPendienteId || ''),
+        fechaInscripcion: new Date().toISOString().slice(0, 10),
+      };
+
+      console.log('📩 payload inscripción:', payload);
+
+      await inscriptionsApi.inscribirme(payload);
+
+      // refrescar estado en el modal (y opcionalmente refrescar lista afuera)
+      await enrollment.reload();
+
+      if (typeof onEnrolled === 'function') {
+        await onEnrolled();
+      }
+
+      alert('✅ Inscripción registrada (PENDIENTE/por confirmar)');
+    } catch (e) {
+      alert(`❌ No se pudo inscribir: ${e?.message || 'Error'}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <ActivityDetailModal activity={activity} isOpen={isOpen} onClose={onClose} />
+
+      {/* Dock flotante: se monta SOLO cuando el modal está abierto */}
+      {isOpen && activity && (
+        <Dock>
+          <DockInner>
+            <Left>
+              <Title>Inscripción</Title>
+
+              {enrollment.loading ? (
+                <Meta>⏳ Verificando tu estado.</Meta>
+              ) : enrollment.inscripcion ? (
+                <Meta>
+                  ✅ Estado: <b>{enrollment.status.label}</b>
+                </Meta>
+              ) : (
+                <Meta>✅ Aún no estás inscrito</Meta>
+              )}
+
+              {disableReason && !enrollment.inscripcion && <Warn>⚠️ {disableReason}</Warn>}
+            </Left>
+
+            <Right>
+              <PrimaryButton
+                onClick={handleEnroll}
+                disabled={!canEnroll}
+                title={disableReason || ''}
+              >
+                {submitting
+                  ? 'Inscribiendo...'
+                  : enrollment.inscripcion
+                  ? 'Ya inscrito'
+                  : 'Inscribirme'}
+              </PrimaryButton>
+
+              <SecondaryButton onClick={onClose}>Cerrar</SecondaryButton>
+            </Right>
+          </DockInner>
+        </Dock>
+      )}
+    </>
+  );
 };
 
 export default ParticipantActivityDetailModal;
@@ -167,10 +210,10 @@ const Dock = styled.div`
 
 const DockInner = styled.div`
   width: min(920px, 100%);
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(226,232,240,0.9);
-  box-shadow: 0 18px 48px rgba(0,0,0,0.14);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
   border-radius: 16px;
   padding: 14px 14px;
   display: flex;
@@ -178,7 +221,7 @@ const DockInner = styled.div`
   gap: 12px;
   align-items: center;
 
-  @media (max-width: 680px){
+  @media (max-width: 680px) {
     flex-direction: column;
     align-items: stretch;
   }
@@ -196,7 +239,7 @@ const Right = styled.div`
   gap: 10px;
   align-items: center;
 
-  @media (max-width: 680px){
+  @media (max-width: 680px) {
     justify-content: stretch;
     width: 100%;
     flex-direction: column;
@@ -212,7 +255,9 @@ const Meta = styled.div`
   color: #475569;
   font-weight: 700;
 
-  b{ color: #0f172a; }
+  b {
+    color: #0f172a;
+  }
 `;
 
 const Warn = styled.div`
@@ -222,7 +267,7 @@ const Warn = styled.div`
 `;
 
 const PrimaryButton = styled.button`
-  background: #4F7CFF;
+  background: #4f7cff;
   color: white;
   border: none;
   padding: 12px 16px;
@@ -231,15 +276,15 @@ const PrimaryButton = styled.button`
   cursor: pointer;
   min-width: 160px;
 
-  &:disabled{
-    opacity: .55;
+  &:disabled {
+    opacity: 0.55;
     cursor: not-allowed;
   }
-  &:hover:not(:disabled){
+  &:hover:not(:disabled) {
     background: #3b63e0;
   }
 
-  @media (max-width: 680px){
+  @media (max-width: 680px) {
     width: 100%;
     min-width: unset;
   }
@@ -254,11 +299,12 @@ const SecondaryButton = styled.button`
   font-weight: 900;
   cursor: pointer;
 
-  &:hover{
+  &:hover {
     background: #f8fafc;
   }
 
-  @media (max-width: 680px){
+  @media (max-width: 680px) {
     width: 100%;
   }
 `;
+
