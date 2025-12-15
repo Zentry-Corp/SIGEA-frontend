@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AdminLayout from "../../features/admin/ui/AdminLayout";
-import { Breadcrumb, PageHeader, Panel, PrimaryButton, Alert } from "../../features/admin/ui/AdminLayout.styles";
+import { Breadcrumb, PageHeader, Panel, PrimaryButton, Alert } from "../../features/admin/ui/adminLayout.styles.js";
 
 // Hooks
 import { useAdminRoles } from "../../features/admin/hooks/useAdminRoles";

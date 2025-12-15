@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import AdminLayout from "../../features/admin/ui/AdminLayout";
-import { Breadcrumb, PageHeader, PrimaryButton, Alert } from "../../features/admin/ui/AdminLayout.styles";
+import { Breadcrumb, PageHeader, PrimaryButton, Alert } from "../../features/admin/ui/adminLayout.styles.js";
 import { TablePanel } from "../../features/admin/ui/styles/AdminUsersStyles";
 
 // Componentes

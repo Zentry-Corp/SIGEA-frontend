@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { 
   ModalOverlay, ModalCard, ModalHeader, ModalBody, ModalFooter, 
   SecondaryButton, PrimaryButton, Alert 
-} from "../AdminLayout.styles";
+} from "../adminLayout.styles";
 
 /* --- Estilos internos --- */
 const RoleOption = styled.label`

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { 
   ModalOverlay, ModalCard, ModalHeader, ModalBody, ModalFooter, 
   FormGrid, Field, Label, Input, SecondaryButton, PrimaryButton, Alert 
-} from "../AdminLayout.styles";
+} from "../adminLayout.styles";
 import { USER_FORM_FIELDS } from "../../constants/users.constants"; 
 import { validateUserData, prepareUserPayload } from "../../services/userService";
 
