@@ -9,6 +9,7 @@ import { usePublicActivities } from "../../features/activities/hooks/usePublicAc
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { apiClient } from "../../shared/api/apiClient";
 import { inscriptionsApi } from "../../features/participant/api/inscriptionsApi";
+import { AlertSuccess } from "@/shared/ui/components/Alert";
 
 const ParticipantEventsPage = () => {
   const { user } = useAuth();
@@ -21,6 +22,10 @@ const ParticipantEventsPage = () => {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [estadoPendienteId, setEstadoPendienteId] = useState("");
   const [loadingEstadoPendiente, setLoadingEstadoPendiente] = useState(true);
+  const [successModal, setSuccessModal] = useState({
+    open: false,
+    message: "",
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -89,7 +94,11 @@ const ParticipantEventsPage = () => {
 
       await inscriptionsApi.inscribirme(payload);
 
-      alert("Inscripción registrada (PENDIENTE/por confirmar).");
+      setSuccessModal({
+        open: true,
+        message:
+          "Tu inscripción se registró correctamente (pendiente/por confirmar).",
+      });
       await refetch();
     } catch (e) {
       alert(
@@ -132,6 +141,12 @@ const ParticipantEventsPage = () => {
           setSelectedActivity(null);
         }}
         onEnrolled={refetch}
+      />
+
+      <AlertSuccess
+        open={successModal.open}
+        message={successModal.message}
+        onClose={() => setSuccessModal({ open: false, message: "" })}
       />
     </ParticipantLayout>
   );
