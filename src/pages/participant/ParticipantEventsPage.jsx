@@ -1,19 +1,104 @@
 // src/pages/participant/ParticipantEventsPage.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ParticipantLayout from "./ParticipantLayout";
 import ActivityCard from "../../features/activities/ui/ActivityCard";
 import ParticipantActivityDetailModal from "./ParticipantActivityDetailModal";
 
-// ✅ nuevo hook sin endpoints prohibidos
+// nuevo hook sin endpoints prohibidos
 import { usePublicActivities } from "../../features/activities/hooks/usePublicActivities";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+import { apiClient } from "../../shared/api/apiClient";
+import { inscriptionsApi } from "../../features/participant/api/inscriptionsApi";
 
 const ParticipantEventsPage = () => {
+  const { user } = useAuth();
+
   const { activities, loading, error, refetch } = usePublicActivities({
     allowedStates: ["PUBLICADO", "EN_CURSO"], // recomendado para participante
     onlyAllowedStates: true,
   });
 
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [estadoPendienteId, setEstadoPendienteId] = useState("");
+  const [loadingEstadoPendiente, setLoadingEstadoPendiente] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchEstadoPendiente = async () => {
+      setLoadingEstadoPendiente(true);
+      try {
+        const res = await apiClient.get(
+          "/estados-inscripcion/obtener/codigo/PENDIENTE",
+        );
+        const data = res?.data || null;
+        if (!mounted) return;
+        const id = data && typeof data === "object" ? data.id || "" : "";
+        setEstadoPendienteId(id);
+      } catch (e) {
+        if (!mounted) return;
+        console.error(
+          "Error al obtener estado de inscripción PENDIENTE:",
+          e?.message,
+        );
+        setEstadoPendienteId("");
+      } finally {
+        if (mounted) setLoadingEstadoPendiente(false);
+      }
+    };
+
+    fetchEstadoPendiente();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleEnrollFromCard = async (activity) => {
+    if (!activity) return;
+
+    if (loadingEstadoPendiente) {
+      alert(
+        "Estamos cargando la configuración de inscripciones. Intenta en unos segundos.",
+      );
+      return;
+    }
+
+    if (!estadoPendienteId) {
+      alert("No se pudo determinar el estado de inscripción PENDIENTE.");
+      return;
+    }
+
+    const usuarioId =
+      user?.usuarioId || user?.id_usuario || user?.id || "";
+
+    if (!usuarioId) {
+      alert("No se pudo obtener tu usuario. Vuelve a iniciar sesión.");
+      return;
+    }
+
+    try {
+      const payload = {
+        usuarioId: String(usuarioId),
+        actividadId: String(activity.id),
+        estadoId: String(estadoPendienteId),
+        fechaInscripcion: new Date().toISOString().slice(0, 10),
+      };
+
+      console.log("Inscribir desde card:", payload);
+
+      await inscriptionsApi.inscribirme(payload);
+
+      alert("Inscripción registrada (PENDIENTE/por confirmar).");
+      await refetch();
+    } catch (e) {
+      alert(
+        `No se pudo inscribir: ${
+          e?.response?.data?.message || e?.message || "Error"
+        }`,
+      );
+    }
+  };
 
   return (
     <ParticipantLayout>
@@ -35,6 +120,7 @@ const ParticipantEventsPage = () => {
               console.log("selectedActivity:", activity);
               setSelectedActivity(activity);
             }}
+            onEnroll={() => handleEnrollFromCard(activity)}
           />
         ))}
       </div>
@@ -42,7 +128,9 @@ const ParticipantEventsPage = () => {
       <ParticipantActivityDetailModal
         activity={selectedActivity}
         isOpen={!!selectedActivity}
-        onClose={() => setSelectedActivity(null)}
+        onClose={() => {
+          setSelectedActivity(null);
+        }}
         onEnrolled={refetch}
       />
     </ParticipantLayout>
@@ -50,3 +138,4 @@ const ParticipantEventsPage = () => {
 };
 
 export default ParticipantEventsPage;
+
