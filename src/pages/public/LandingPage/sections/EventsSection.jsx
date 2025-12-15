@@ -1,5 +1,5 @@
 // src/pages/public/LandingPage/sections/EventsSection.jsx
-// Sección de eventos con carrusel profesional - REDISEÑO UI/UX
+// Card de evento OPTIMIZADA PARA CONVERSIÓN
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
@@ -14,6 +14,8 @@ import {
   FiGlobe,
   FiChevronLeft,
   FiChevronRight,
+  FiMapPin,
+  FiAward,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { usePublicActivities } from "@/features/activities/hooks/usePublicActivities";
@@ -68,11 +70,46 @@ const formatTime = (timeValue) => {
 
 const getModalidadInfo = (modalidad) => {
   const modalidades = {
-    PRESENCIAL: { icon: FiHome, label: "Presencial", color: "#0EA5E9" },
-    VIRTUAL: { icon: FiVideo, label: "Virtual", color: "#8B5CF6" },
-    HIBRIDO: { icon: FiGlobe, label: "Híbrido", color: "#F59E0B" },
+    PRESENCIAL: { icon: FiHome, label: "Presencial", color: "#64748b" },
+    VIRTUAL: { icon: FiVideo, label: "Virtual", color: "#64748b" },
+    HIBRIDO: { icon: FiGlobe, label: "Híbrido", color: "#64748b" },
   };
   return modalidades[modalidad] || modalidades.PRESENCIAL;
+};
+
+// Determinar badge de estado del evento
+const getEventStatus = (activity) => {
+  const now = new Date();
+  const startDate = new Date(activity.fechaInicio);
+  const endDate = activity.fechaFin ? new Date(activity.fechaFin) : startDate;
+
+  // Si ya empezó pero no terminó
+  if (now >= startDate && now <= endDate) {
+    return {
+      label: "En curso",
+      color: "#0EA5E9",
+      bgColor: "#E0F2FE",
+    };
+  }
+
+  // Si empieza en los próximos 7 días
+  const daysUntilStart = Math.ceil(
+    (startDate - now) / (1000 * 60 * 60 * 24)
+  );
+  if (daysUntilStart > 0 && daysUntilStart <= 7) {
+    return {
+      label: "Empieza pronto",
+      color: "#F59E0B",
+      bgColor: "#FEF3C7",
+    };
+  }
+
+  // Por defecto: inscripciones abiertas
+  return {
+    label: "Inscripciones abiertas",
+    color: "#059669",
+    bgColor: "#D1FAE5",
+  };
 };
 
 // ============================================
@@ -322,6 +359,7 @@ const EventsSection = () => {
             const modalidadInfo = getModalidadInfo(activity.modalidad);
             const ModalidadIcon = modalidadInfo.icon;
             const isFree = !activity.precio || activity.precio === 0;
+            const eventStatus = getEventStatus(activity);
 
             return (
               <EventCard
@@ -336,69 +374,100 @@ const EventsSection = () => {
                 }}
               >
                 <CardInner
-                  whileHover={{ y: -8 }}
+                  whileHover={{ y: -6 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                 >
-                  {/* IMAGEN CON OVERLAY Y BADGE FLOTANTE */}
+                  {/* 1️⃣ IMAGEN CONTEXTUAL (NO PROTAGONISTA) */}
                   <EventImageWrapper>
                     <EventImage>
                       {activity.bannerUrl ? (
                         <img src={activity.bannerUrl} alt={activity.titulo} />
                       ) : (
                         <ImagePlaceholder>
-                          <FiCalendar size={40} />
+                          <FiAward size={36} />
                         </ImagePlaceholder>
                       )}
                       <ImageOverlay />
                     </EventImage>
 
-                    {/* Badge de modalidad flotante */}
-                    <ModalityBadgeFloating $color={modalidadInfo.color}>
-                      <ModalidadIcon size={14} />
-                      <span>{modalidadInfo.label}</span>
-                    </ModalityBadgeFloating>
+                    {/* 2️⃣ BADGE DE ESTADO (RESPONDE: ¿PUEDO PARTICIPAR AHORA?) */}
+                    <StatusBadge
+                      $color={eventStatus.color}
+                      $bgColor={eventStatus.bgColor}
+                    >
+                      {eventStatus.label}
+                    </StatusBadge>
                   </EventImageWrapper>
 
                   {/* CONTENIDO */}
                   <EventContent>
-                    {/* Título - Nivel 1 */}
+                    {/* 3️⃣ TÍTULO - ELEMENTO PRINCIPAL */}
                     <EventTitle>{activity.titulo}</EventTitle>
 
-                    {/* Información clave - Nivel 2 y 3 */}
+                    {/* 4️⃣ METADATA CLAVE (ESCANEABLE) */}
                     <EventMetadata>
-                      <MetadataItem $primary>
-                        <FiCalendar size={16} />
+                      <MetadataRow>
+                        <FiCalendar size={15} />
                         <span>
                           {formatDateRange(
                             activity.fechaInicio,
                             activity.fechaFin
                           )}
                         </span>
-                      </MetadataItem>
-                      <MetadataItem>
-                        <FiClock size={16} />
-                        <span>
-                          {formatTime(activity.horaInicio)} -{" "}
-                          {formatTime(activity.horaFin)}
-                        </span>
-                      </MetadataItem>
+                      </MetadataRow>
+
+                      {activity.horaInicio && (
+                        <MetadataRow>
+                          <FiClock size={15} />
+                          <span>
+                            {formatTime(activity.horaInicio)}
+                          </span>
+                        </MetadataRow>
+                      )}
+
+                      <MetadataRow>
+                        <ModalidadIcon size={15} />
+                        <span>{modalidadInfo.label}</span>
+                      </MetadataRow>
                     </EventMetadata>
 
-                    {/* Precio - Nivel 4 */}
+                    {/* 5️⃣ ORGANIZADOR (CREDIBILIDAD) */}
+                    <OrganizerSection>
+                      <OrganizerLabel>Organiza:</OrganizerLabel>
+                      <OrganizerName>
+                        {activity.organizador || "Unidad de Extension Universitaria"}
+                      </OrganizerName>
+                    </OrganizerSection>
+
+                    {/* ESPACIADOR */}
+                    <Spacer />
+
+                    {/* 6️⃣ PRECIO / CONDICIÓN (GANCHO) */}
                     <PriceSection>
-                      <PriceLabel>Inversión</PriceLabel>
-                      <PriceValue $isFree={isFree}>
-                        {isFree ? "Gratis" : `S/ ${activity.precio.toFixed(2)}`}
-                      </PriceValue>
+                      {isFree ? (
+                        <PriceFree>
+                          S/.20
+                          {activity.cuposLimitados && (
+                            <PriceNote> · Cupos limitados</PriceNote>
+                          )}
+                        </PriceFree>
+                      ) : (
+                        <PriceAmount>
+                          S/ {activity.precio.toFixed(2)}
+                          {activity.incluyeCertificado && (
+                            <PriceNote> · Certificado incluido</PriceNote>
+                          )}
+                        </PriceAmount>
+                      )}
                     </PriceSection>
 
-                    {/* CTA - Nivel 5 */}
+                    {/* 7️⃣ CTA PRINCIPAL (ACCIÓN DOMINANTE) */}
                     <CTAButton
-                      onClick={() => handleRegisterRedirect(activity)}
+                     onClick={() => window.location.href = '/register'}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      Ver detalles
+                      Inscribirme
                     </CTAButton>
                   </EventContent>
                 </CardInner>
@@ -449,7 +518,6 @@ const EventsSection = () => {
         </MobileNavButtons>
       )}
 
-
       {/* Modal de detalle */}
       <EventDetailModal
         activity={selectedActivity}
@@ -461,7 +529,7 @@ const EventsSection = () => {
 };
 
 // ============================================
-// STYLED COMPONENTS - REDISEÑADOS
+// STYLED COMPONENTS - OPTIMIZADOS PARA CONVERSIÓN
 // ============================================
 
 const SectionContainer = styled.section`
@@ -602,14 +670,16 @@ const CardInner = styled(motion.div)`
   background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   height: 100%;
   display: flex;
   flex-direction: column;
   transition: all 0.25s ease-out;
+  border: 1px solid #f1f5f9;
 
   &:hover {
-    box-shadow: 0 12px 48px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
+    border-color: #e2e8f0;
   }
 `;
 
@@ -648,12 +718,12 @@ const GradientRight = styled.div`
 `;
 
 // ============================================
-// NUEVA ESTRUCTURA DE IMAGEN CON OVERLAY
+// 1️⃣ IMAGEN CONTEXTUAL (140-160px)
 // ============================================
 
 const EventImageWrapper = styled.div`
   position: relative;
-  height: 200px;
+  height: 160px;
   overflow: hidden;
   flex-shrink: 0;
 `;
@@ -673,7 +743,7 @@ const EventImage = styled.div`
   }
 
   ${CardInner}:hover & img {
-    transform: scale(1.08);
+    transform: scale(1.05);
   }
 `;
 
@@ -683,7 +753,7 @@ const ImageOverlay = styled.div`
   background: linear-gradient(
     180deg,
     rgba(15, 23, 42, 0) 0%,
-    rgba(15, 23, 42, 0.15) 100%
+    rgba(15, 23, 42, 0.12) 100%
   );
   pointer-events: none;
 `;
@@ -695,40 +765,31 @@ const ImagePlaceholder = styled.div`
   align-items: center;
   justify-content: center;
   color: white;
-  opacity: 0.9;
-`;
-
-// Badge flotante con glassmorphism
-const ModalityBadgeFloating = styled.div`
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: ${(props) => `${props.$color}15`};
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid ${(props) => `${props.$color}20`};
-  border-radius: 10px;
-  color: ${(props) => props.$color};
-  font-size: 0.8125rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-
-  svg {
-    flex-shrink: 0;
-  }
-
-  span {
-    white-space: nowrap;
-  }
+  opacity: 0.85;
 `;
 
 // ============================================
-// CONTENIDO CON JERARQUÍA MEJORADA
+// 2️⃣ BADGE DE ESTADO (RESPONDE: ¿PUEDO PARTICIPAR?)
+// ============================================
+
+const StatusBadge = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  background: ${(props) => props.$bgColor};
+  color: ${(props) => props.$color};
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+`;
+
+// ============================================
+// CONTENIDO CON JERARQUÍA PARA CONVERSIÓN
 // ============================================
 
 const EventContent = styled.div`
@@ -738,40 +799,45 @@ const EventContent = styled.div`
   flex-direction: column;
 `;
 
-// NIVEL 1: Título dominante
+// 3️⃣ TÍTULO - ELEMENTO MÁS VISIBLE
 const EventTitle = styled.h3`
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1.3;
+  line-height: 1.25;
   margin: 0 0 16px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  min-height: 2.5rem;
+
+  @media (max-width: 640px) {
+    font-size: 1.25rem;
+  }
 `;
 
-// NIVEL 2 y 3: Metadata agrupada sin iconos redundantes
+// 4️⃣ METADATA ESCANEABLE (SECUNDARIA)
 const EventMetadata = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
 `;
 
-const MetadataItem = styled.div`
+const MetadataRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: ${(props) => (props.$primary ? "0.9375rem" : "0.875rem")};
-  font-weight: ${(props) => (props.$primary ? "500" : "400")};
-  color: ${(props) => (props.$primary ? "#475569" : "#64748b")};
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #64748b;
 
   svg {
     color: #94a3b8;
     flex-shrink: 0;
-    opacity: 0.7;
   }
 
   span {
@@ -779,60 +845,91 @@ const MetadataItem = styled.div`
   }
 `;
 
-// NIVEL 4: Precio con sistema correcto
-const PriceSection = styled.div`
-  margin-top: auto;
-  margin-bottom: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+// 5️⃣ ORGANIZADOR (CREDIBILIDAD)
+const OrganizerSection = styled.div`
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
 `;
 
-const PriceLabel = styled.div`
-  font-size: 0.75rem;
-  font-weight: 500;
+const OrganizerLabel = styled.div`
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 `;
 
-const PriceValue = styled.div`
+const OrganizerName = styled.div`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.3;
+`;
+
+const Spacer = styled.div`
+  flex: 1;
+  min-height: 8px;
+`;
+
+// 6️⃣ PRECIO (GANCHO VISUAL)
+const PriceSection = styled.div`
+  margin-bottom: 20px;
+`;
+
+const PriceFree = styled.div`
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #059669;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+`;
+
+const PriceAmount = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: ${(props) => (props.$isFree ? "#059669" : "#0f172a")};
+  color: #0f172a;
   letter-spacing: -0.02em;
-
-  /* Si es gratis, usar peso medio para balance visual */
-  font-weight: ${(props) => (props.$isFree ? "600" : "700")};
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 `;
 
-// NIVEL 5: CTA dominante y claro
+const PriceNote = styled.span`
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+`;
+
+// 7️⃣ CTA DOMINANTE
 const CTAButton = styled(motion.button)`
   width: 100%;
-  padding: 14px 20px;
+  padding: 16px 20px;
   background: #4f7cff;
   border: none;
   border-radius: 10px;
   color: white;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease-out;
-  box-shadow: 0 2px 8px rgba(79, 124, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(79, 124, 255, 0.3);
 
   &:hover {
     background: #3b63e0;
-    box-shadow: 0 4px 16px rgba(79, 124, 255, 0.35);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(79, 124, 255, 0.4);
   }
 
   &:active {
-    transform: translateY(0);
+    transform: scale(0.98);
   }
 `;
 
 // ============================================
-// RESTO DE COMPONENTES (SIN CAMBIOS MAYORES)
+// RESTO DE COMPONENTES
 // ============================================
 
 const DotsContainer = styled.div`

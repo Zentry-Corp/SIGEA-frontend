@@ -1,9 +1,9 @@
 // src/pages/public/LandingPage/sections/EventDetailModal.jsx
 // Modal de detalle de evento para la landing page pública (sin date-fns)
 
-import React, { useEffect } from 'react';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect } from "react";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiX,
   FiCalendar,
@@ -17,18 +17,18 @@ import {
   FiVideo,
   FiHome,
   FiGlobe,
-} from 'react-icons/fi';
+} from "react-icons/fi";
 
 // ============================================
 // HELPERS - JavaScript nativo (sin date-fns)
 // ============================================
 const formatDate = (dateString) => {
-  if (!dateString) return '-';
+  if (!dateString) return "-";
   try {
-    return new Intl.DateTimeFormat('es-PE', { 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric' 
+    return new Intl.DateTimeFormat("es-PE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     }).format(new Date(dateString));
   } catch {
     return dateString;
@@ -36,12 +36,12 @@ const formatDate = (dateString) => {
 };
 
 const formatFullDate = (dateString) => {
-  if (!dateString) return '-';
+  if (!dateString) return "-";
   try {
-    return new Intl.DateTimeFormat('es-PE', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
+    return new Intl.DateTimeFormat("es-PE", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     }).format(new Date(dateString));
   } catch {
     return dateString;
@@ -49,41 +49,62 @@ const formatFullDate = (dateString) => {
 };
 
 const formatTime = (timeValue) => {
-  if (!timeValue) return '-';
-  
+  if (!timeValue) return "-";
+
   // Si es objeto con hour/minute
-  if (typeof timeValue === 'object' && timeValue.hour !== undefined) {
-    const hour = String(timeValue.hour).padStart(2, '0');
-    const minute = String(timeValue.minute || 0).padStart(2, '0');
+  if (typeof timeValue === "object" && timeValue.hour !== undefined) {
+    const hour = String(timeValue.hour).padStart(2, "0");
+    const minute = String(timeValue.minute || 0).padStart(2, "0");
     return `${hour}:${minute}`;
   }
-  
+
   // Si es string HH:MM
-  if (typeof timeValue === 'string') {
+  if (typeof timeValue === "string") {
     return timeValue.substring(0, 5);
   }
-  
-  return '-';
+
+  return "-";
 };
 
 const getModalidadInfo = (modalidad) => {
   const modalidades = {
-    PRESENCIAL: { icon: FiHome, color: '#10b981', bg: '#ecfdf5', label: 'Presencial' },
-    VIRTUAL: { icon: FiVideo, color: '#6366f1', bg: '#eef2ff', label: 'Virtual' },
-    HIBRIDO: { icon: FiGlobe, color: '#f59e0b', bg: '#fffbeb', label: 'Híbrido' },
+    PRESENCIAL: {
+      icon: FiHome,
+      color: "#10b981",
+      bg: "#ecfdf5",
+      label: "Presencial",
+    },
+    VIRTUAL: {
+      icon: FiVideo,
+      color: "#6366f1",
+      bg: "#eef2ff",
+      label: "Virtual",
+    },
+    HIBRIDO: {
+      icon: FiGlobe,
+      color: "#f59e0b",
+      bg: "#fffbeb",
+      label: "Híbrido",
+    },
   };
   return modalidades[modalidad] || modalidades.PRESENCIAL;
 };
 
 const getEstadoInfo = (estado) => {
   const estados = {
-    'EN_CURSO': { color: '#10b981', bg: '#ecfdf5', label: 'En Curso' },
-    'ACTIVO': { color: '#10b981', bg: '#ecfdf5', label: 'Activo' },
-    'PROXIMO': { color: '#3b82f6', bg: '#eff6ff', label: 'Próximo' },
-    'FINALIZADO': { color: '#6b7280', bg: '#f3f4f6', label: 'Finalizado' },
-    'CANCELADO': { color: '#ef4444', bg: '#fef2f2', label: 'Cancelado' },
+    EN_CURSO: { color: "#10b981", bg: "#ecfdf5", label: "En Curso" },
+    ACTIVO: { color: "#10b981", bg: "#ecfdf5", label: "Activo" },
+    PROXIMO: { color: "#3b82f6", bg: "#eff6ff", label: "Próximo" },
+    FINALIZADO: { color: "#6b7280", bg: "#f3f4f6", label: "Finalizado" },
+    CANCELADO: { color: "#ef4444", bg: "#fef2f2", label: "Cancelado" },
   };
-  return estados[estado] || { color: '#6b7280', bg: '#f3f4f6', label: estado || 'N/A' };
+  return (
+    estados[estado] || {
+      color: "#6b7280",
+      bg: "#f3f4f6",
+      label: estado || "N/A",
+    }
+  );
 };
 
 // ============================================
@@ -93,12 +114,12 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
   // Bloquear scroll cuando el modal está abierto
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     }
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     };
   }, [isOpen]);
 
@@ -109,6 +130,10 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
   const ModalidadIcon = modalidadInfo.icon;
 
   const handleInscribirse = () => {
+    // Cerrar modal primero
+    onClose();
+    // Scroll al top antes de navegar
+    window.scrollTo(0, 0);
     // Redirigir a registro o mostrar modal de login
     window.location.href = `/registro?actividad=${activity.id}`;
   };
@@ -123,12 +148,12 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          
+
           <ModalContainer
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Botón cerrar */}
             <CloseButton onClick={onClose}>
@@ -157,20 +182,31 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
               <QuickInfoGrid>
                 <QuickInfoPill>
                   <FiCalendar size={16} />
-                  <span><strong>Fecha Inicio</strong></span>
+                  <span>
+                    <strong>Fecha Inicio</strong>
+                  </span>
                   <span>{formatDate(activity.fechaInicio)}</span>
                 </QuickInfoPill>
-                
+
                 <QuickInfoPill>
                   <FiClock size={16} />
-                  <span><strong>Horario</strong></span>
-                  <span>{formatTime(activity.horaInicio)} - {formatTime(activity.horaFin)}</span>
+                  <span>
+                    <strong>Horario</strong>
+                  </span>
+                  <span>
+                    {formatTime(activity.horaInicio)} -{" "}
+                    {formatTime(activity.horaFin)}
+                  </span>
                 </QuickInfoPill>
-                
+
                 <QuickInfoPill $color={estadoInfo.color} $bg={estadoInfo.bg}>
                   <FiInfo size={16} />
-                  <span><strong>Estado</strong></span>
-                  <span style={{ color: estadoInfo.color }}>{estadoInfo.label}</span>
+                  <span>
+                    <strong>Estado</strong>
+                  </span>
+                  <span style={{ color: estadoInfo.color }}>
+                    {estadoInfo.label}
+                  </span>
                 </QuickInfoPill>
               </QuickInfoGrid>
 
@@ -181,7 +217,7 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
                   Descripción de la actividad
                 </SectionTitle>
                 <Description>
-                  {activity.descripcion || 'Sin descripción disponible.'}
+                  {activity.descripcion || "Sin descripción disponible."}
                 </Description>
               </Section>
 
@@ -194,14 +230,16 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
                 <DateGrid>
                   <DateCard>
                     <DateLabel>Fecha de Inicio</DateLabel>
-                    <DateValue>{formatFullDate(activity.fechaInicio)}</DateValue>
+                    <DateValue>
+                      {formatFullDate(activity.fechaInicio)}
+                    </DateValue>
                   </DateCard>
                   <DateCard>
                     <DateLabel>Fecha de Finalización</DateLabel>
                     <DateValue>{formatFullDate(activity.fechaFin)}</DateValue>
                   </DateCard>
                 </DateGrid>
-                
+
                 {activity.lugar && (
                   <LocationChip>
                     <FiMapPin size={16} />
@@ -212,7 +250,10 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
 
               {/* Modalidad */}
               <Section>
-                <ModalidadBadge $color={modalidadInfo.color} $bg={modalidadInfo.bg}>
+                <ModalidadBadge
+                  $color={modalidadInfo.color}
+                  $bg={modalidadInfo.bg}
+                >
                   <ModalidadIcon size={18} />
                   {modalidadInfo.label}
                 </ModalidadBadge>
@@ -224,19 +265,22 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
                   <FiList size={18} />
                   Sesiones
                 </SectionTitle>
-                
+
                 {activity.sesiones && activity.sesiones.length > 0 ? (
                   <SessionsList>
                     {activity.sesiones.map((sesion, index) => (
                       <SessionCard key={sesion.id || index}>
                         <SessionNumber>{index + 1}</SessionNumber>
                         <SessionInfo>
-                          <SessionTitle>{sesion.titulo || `Sesión ${index + 1}`}</SessionTitle>
+                          <SessionTitle>
+                            {sesion.titulo || `Sesión ${index + 1}`}
+                          </SessionTitle>
                           <SessionMeta>
                             <FiCalendar size={14} />
                             {formatDate(sesion.fecha)}
                             <FiClock size={14} />
-                            {formatTime(sesion.horaInicio)} - {formatTime(sesion.horaFin)}
+                            {formatTime(sesion.horaInicio)} -{" "}
+                            {formatTime(sesion.horaFin)}
                           </SessionMeta>
                         </SessionInfo>
                       </SessionCard>
@@ -277,7 +321,9 @@ const EventDetailModal = ({ activity, isOpen, onClose }) => {
                       <InfoLabel>Inversión</InfoLabel>
                       <InfoValue $highlight>
                         <FiDollarSign size={14} />
-                        {activity.precio > 0 ? `S/ ${activity.precio.toFixed(2)}` : 'Gratuito'}
+                        {activity.precio > 0
+                          ? `S/ ${activity.precio.toFixed(2)}`
+                          : "Gratuito"}
                       </InfoValue>
                     </InfoItem>
                   )}
@@ -455,13 +501,13 @@ const QuickInfoPill = styled.div`
   flex-direction: column;
   gap: 4px;
   padding: 12px 18px;
-  background: ${props => props.$bg || '#f0f4ff'};
+  background: ${(props) => props.$bg || "#f0f4ff"};
   border-radius: 14px;
   flex: 1;
   min-width: 140px;
 
   svg {
-    color: ${props => props.$color || '#4f7cff'};
+    color: ${(props) => props.$color || "#4f7cff"};
     margin-bottom: 4px;
   }
 
@@ -562,11 +608,11 @@ const ModalidadBadge = styled.div`
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: ${props => props.$bg || '#f0f4ff'};
+  background: ${(props) => props.$bg || "#f0f4ff"};
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: ${props => props.$color || '#4f7cff'};
+  color: ${(props) => props.$color || "#4f7cff"};
 `;
 
 const SessionsList = styled.div`
@@ -666,10 +712,10 @@ const InfoValue = styled.div`
   gap: 6px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: ${props => props.$highlight ? '#10b981' : '#1a1a2e'};
+  color: ${(props) => (props.$highlight ? "#10b981" : "#1a1a2e")};
 
   svg {
-    color: ${props => props.$highlight ? '#10b981' : '#64748b'};
+    color: ${(props) => (props.$highlight ? "#10b981" : "#64748b")};
   }
 `;
 
