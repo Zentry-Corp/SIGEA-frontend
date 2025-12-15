@@ -4,14 +4,20 @@ import { apiClient } from '../../../shared/api/apiClient';
 export const activitiesApi = {
 
   listar: async () => {
-    try {
-      const response = await apiClient.get('/actividades/listar');
-      return response.data;  // Solo los datos
-    } catch (error) {
-      console.error("❌ Error al obtener actividades:", error);  // Trazabilidad
-      throw new Error('Hubo un problema al cargar las actividades');  // Mensaje amigable
-    }
-  },
+  try {
+    const response = await apiClient.get('/actividades/listar');
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error al obtener actividades:", {
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data,
+      url: error?.config?.url,
+    });
+    throw error; // deja pasar el error real
+  }
+},
+
 
 
   obtener: async (id) => {

@@ -120,10 +120,6 @@ const ActividadesPage = () => {
           <Header>
             <HeaderContent>
               <Title>Gestión de Actividades</Title>
-              <Subtitle>Crea y gestiona tus actividades académicas</Subtitle>
-              <Breadcrumb>
-                Inicio / <strong>Gestión de actividades</strong>
-              </Breadcrumb>
             </HeaderContent>
 
             <NewActivityButton
@@ -136,46 +132,37 @@ const ActividadesPage = () => {
             </NewActivityButton>
           </Header>
 
-           {/* ACTIVIDADES GRID */}
+          {/* ACTIVIDADES GRID */}
           {!loading && !error && (
             <>
-              <ResultsHeader>
-                <ResultsTitle>Mis actividades</ResultsTitle>
-                <ResultsCount>
-                  Mostrando <strong>{activities.length}</strong>{" "}
-                  {activities.length === 1 ? "actividad" : "actividades"}
-                </ResultsCount>
-              </ResultsHeader>
+              {/* FILTROS */}
+              {!loading && !error && (
+                <ActivityFilters
+                  filters={filters}
+                  tipos={tipos}
+                  estados={estados}
+                  onFilterChange={updateFilter}
+                  onClearFilters={clearFilters}
+                  resultCount={activities.length}
+                />
+              )}
 
-          {/* FILTROS */}
-          {!loading && !error && (
-            <ActivityFilters
-              filters={filters}
-              tipos={tipos}
-              estados={estados}
-              onFilterChange={updateFilter}
-              onClearFilters={clearFilters}
-              resultCount={activities.length}
-            />
-          )}
+              {/* LOADING STATE */}
+              {loading && (
+                <LoadingContainer>
+                  <Spinner />
+                  <LoadingText>Cargando actividades...</LoadingText>
+                </LoadingContainer>
+              )}
 
-          {/* LOADING STATE */}
-          {loading && (
-            <LoadingContainer>
-              <Spinner />
-              <LoadingText>Cargando actividades...</LoadingText>
-            </LoadingContainer>
-          )}
-
-          {/* ERROR STATE */}
-          {error && (
-            <ErrorContainer>
-              <ErrorIcon>⚠️</ErrorIcon>
-              <ErrorTitle>Error al cargar actividades</ErrorTitle>
-              <ErrorMessage>{error}</ErrorMessage>
-            </ErrorContainer>
-          )}
-
+              {/* ERROR STATE */}
+              {error && (
+                <ErrorContainer>
+                  <ErrorIcon>⚠️</ErrorIcon>
+                  <ErrorTitle>Error al cargar actividades</ErrorTitle>
+                  <ErrorMessage>{error}</ErrorMessage>
+                </ErrorContainer>
+              )}
 
               {activities.length > 0 ? (
                 <ActivitiesGrid>
@@ -265,7 +252,7 @@ export default ActividadesPage;
 const PageContainer = styled.div`
   margin-left: 260px;
   min-height: 100vh;
-  padding: 40px;
+  padding: 28px 32px;
   background: #f8fafc;
 
   @media (max-width: 968px) {
@@ -285,7 +272,7 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   gap: 20px;
 
   @media (max-width: 968px) {
@@ -438,9 +425,10 @@ const ResultsCount = styled.p`
 `;
 
 const ActivitiesGrid = styled.div`
+  max-width: 1100px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 24px;
+  gap: 20px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;

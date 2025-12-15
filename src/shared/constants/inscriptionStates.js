@@ -1,0 +1,3 @@
+export const INSCRIPTION_STATES = {
+  PENDIENTE: Number(import.meta.env.VITE_ESTADO_INSCRIPCION_PENDIENTE_ID),
+};
