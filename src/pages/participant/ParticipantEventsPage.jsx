@@ -9,7 +9,7 @@ import { usePublicActivities } from "../../features/activities/hooks/usePublicAc
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { apiClient } from "../../shared/api/apiClient";
 import { inscriptionsApi } from "../../features/participant/api/inscriptionsApi";
-import { AlertSuccess } from "@/shared/ui/components/Alert";
+import { AlertSuccess, AlertError } from "@/shared/ui/components/Alert";
 
 const ParticipantEventsPage = () => {
   const { user } = useAuth();
@@ -23,6 +23,10 @@ const ParticipantEventsPage = () => {
   const [estadoPendienteId, setEstadoPendienteId] = useState("");
   const [loadingEstadoPendiente, setLoadingEstadoPendiente] = useState(true);
   const [successModal, setSuccessModal] = useState({
+    open: false,
+    message: "",
+  });
+  const [errorModal, setErrorModal] = useState({
     open: false,
     message: "",
   });
@@ -101,11 +105,11 @@ const ParticipantEventsPage = () => {
       });
       await refetch();
     } catch (e) {
-      alert(
-        `No se pudo inscribir: ${
-          e?.response?.data?.message || e?.message || "Error"
-        }`,
-      );
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "No se pudo completar la inscripción.";
+      setErrorModal({ open: true, message: msg });
     }
   };
 
@@ -148,9 +152,14 @@ const ParticipantEventsPage = () => {
         message={successModal.message}
         onClose={() => setSuccessModal({ open: false, message: "" })}
       />
+
+      <AlertError
+        open={errorModal.open}
+        message={errorModal.message}
+        onClose={() => setErrorModal({ open: false, message: "" })}
+      />
     </ParticipantLayout>
   );
 };
 
 export default ParticipantEventsPage;
-
