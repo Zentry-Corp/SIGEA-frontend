@@ -1,14 +1,30 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// --- PAGINAS PUBLICAS ---
 import { LandingPage } from '../../pages/public';
 import { RegisterPage } from '../../pages/auth';
+
+// --- PAGINAS PARTICIPANTE ---
 import { ParticipantDashboardPage } from '../../pages/participant';
+
+// --- PAGINAS ADMIN (AQUÍ FALTABAN TUS IMPORTACIONES) ---
 import { AdminDashboardPage } from '../../pages/admin';
+import AdminUsersPage from '../../pages/admin/AdminUsersPage'; // ✅ Agregado
+import AdminRolesPage from '../../pages/admin/AdminRolesPage'; // ✅ Agregado
+
+// --- PAGINAS ORGANIZADOR ---
 import OrganizerDashboardPage from '../../pages/organizer/OrganizerDashboardPage';
 import ActividadesPage from '../../pages/organizer/ActividadesPage';
 import CrearActividadPage from '../../pages/organizer/CrearActividadPage';
 import ParticipantesPage from '../../pages/organizer/ParticipantesPage';
 import CertificacionPage from '../../pages/organizer/CertificacionPage';
+// 👇 ESTAS ERAN LAS QUE DABAN ERROR (Faltaban importar)
+import GestionarSesionesPage from '../../pages/organizer/GestionarSesionesPage'; // ✅ Agregado
+import EditarActividadPage from '../../pages/organizer/EditarActividadPage';   // ✅ Agregado
+import PagosPage from '../../pages/organizer/PagosPage';                         // ✅ Agregado
+
+// --- UTILS ---
 import PrivateRoute from './PrivateRoute';
 import RoleRoute from './RoleRoute';
 import { useAuth } from '../../features/auth/hooks/useAuth';
@@ -53,7 +69,7 @@ function AppRouter() {
         />
 
         {/* ==================== RUTAS ORGANIZADOR ==================== */}
-
+        
         {/* Dashboard */}
         <Route
           path="/organizador/dashboard"
@@ -90,13 +106,13 @@ function AppRouter() {
           }
         />
 
-        {/* 📋 LISTAR / GESTIONAR SESIONES */}
+        {/* 📋 LISTAR / GESTIONAR SESIONES (Aquí te daba el error) */}
         <Route
           path="/organizador/actividades/:actividadId/sesiones"
           element={
             <PrivateRoute>
               <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
-                <GestionarSesionesPage />
+                <GestionarSesionesPage /> 
               </RoleRoute>
             </PrivateRoute>
           }
@@ -125,6 +141,7 @@ function AppRouter() {
             </PrivateRoute>
           }
         />
+
         {/* Gestión de Actividades - Editar */}
         <Route
           path="/organizador/actividades/editar/:id"
@@ -149,13 +166,39 @@ function AppRouter() {
           }
         />
 
-        {/* ==================== RUTAS ADMIN ==================== */}
+        {/* ==================== RUTAS ADMIN (YA REFACTORIZADAS) ==================== */}
+        
+        {/* Dashboard Admin */}
         <Route
           path="/admin/dashboard"
           element={
             <PrivateRoute>
               <RoleRoute allowedRoles={["ADMINISTRADOR"]}>
                 <AdminDashboardPage />
+              </RoleRoute>
+            </PrivateRoute>
+          } 
+        />
+
+        {/* ✅ AGREGADO: Gestión de Usuarios */}
+        <Route
+          path="/admin/usuarios"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ADMINISTRADOR"]}>
+                <AdminUsersPage />
+              </RoleRoute>
+            </PrivateRoute>
+          } 
+        />
+
+        {/* ✅ AGREGADO: Gestión de Roles */}
+        <Route
+          path="/admin/roles"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ADMINISTRADOR"]}>
+                <AdminRolesPage />
               </RoleRoute>
             </PrivateRoute>
           } 

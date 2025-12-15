@@ -28,7 +28,9 @@ export const useAdminUsers = () => {
       const res = await adminApi.listarUsuarios();
       console.log("📥 [useAdminUsers] Respuesta completa:", res?.data);
       
-      const list = normalizeList(res?.data, ["usuarios", "users", "lista", "result", "data"]);
+      const list = normalizeList(res?.data, [
+        "usuarios", "users", "lista", "result", "data", "content", "items"
+      ]);
       console.log("📋 [useAdminUsers] Lista normalizada:", list);
       
       if (list.length > 0) {

@@ -71,7 +71,12 @@ export const filterUsersByQuery = (users, query) => {
  */
 export const filterUsersByRole = (users, roleName) => {
   if (roleName === 'ALL') return users;
-  return users.filter(u => (u.nombresRoles || []).includes(roleName));
+
+  return users.filter(u => {
+    // 🔴 ANTES: return (u.nombresRoles || []).includes(roleName);
+    // ✅ AHORA: Usamos 'roleNames' que es la propiedad que genera tu hook useAdminUsers
+    return (u.roleNames || []).includes(roleName); 
+  });
 };
 
 /**

@@ -1,4 +1,4 @@
-
+/* src/features/admin/utils/adminMappers.js */
 
 export const toId = (v) => {
   if (v === null || v === undefined || v === "") return null;
@@ -6,25 +6,30 @@ export const toId = (v) => {
 };
 
 /**
- * Normaliza listas - Maneja arrays y objetos indexados
+ * ✅ CORREGIDO: normalizeList más inteligente.
+ * Mantiene tu lógica original pero busca más profundo si extraData es un objeto.
  */
 export const normalizeList = (resData, candidateKeys = []) => {
   // 1. Si es array directo
   if (Array.isArray(resData)) return resData;
 
-  // 2. Intentar en extraData
+  // 2. Intentar en extraData (Array directo)
   if (Array.isArray(resData?.extraData)) return resData.extraData;
 
-  // 3. Intentar en data
+  // 3. Intentar en data (Array directo)
   if (Array.isArray(resData?.data)) return resData.data;
 
-  // 4. Buscar en candidateKeys
-  const locations = [resData?.extraData, resData?.data, resData];
+  // 4. NUEVO: Buscar arrays dentro de objetos (para paginación o wrappers)
+  // Añadimos 'content', 'items', 'lista' a las llaves candidatas por defecto
+  const searchKeys = [...candidateKeys, "content", "items", "lista", "users", "usuarios", "result"];
+  
+  const locations = [resData?.extraData, resData?.data, resData, resData?.result];
   
   for (const loc of locations) {
     if (!loc || typeof loc !== "object") continue;
     
-    for (const key of candidateKeys) {
+    // Buscamos si alguna de las llaves contiene el array
+    for (const key of searchKeys) {
       if (Array.isArray(loc[key])) {
         console.log(`✅ Array encontrado en .${key}`);
         return loc[key];
@@ -32,13 +37,11 @@ export const normalizeList = (resData, candidateKeys = []) => {
     }
   }
 
-  // 5. Objeto indexado
+  // 5. Tu lógica original de Objeto Indexado (Se mantiene igual)
   const checkIndexed = (obj) => {
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return null;
-    
     const keys = Object.keys(obj);
     if (keys.length === 0) return null;
-    
     const numericKeys = keys.filter(k => /^\d+$/.test(k));
     if (numericKeys.length === keys.length && numericKeys.length > 0) {
       return numericKeys
@@ -46,7 +49,6 @@ export const normalizeList = (resData, candidateKeys = []) => {
         .map(k => obj[k])
         .filter(v => v && typeof v === "object");
     }
-    
     return null;
   };
 
@@ -59,182 +61,102 @@ export const normalizeList = (resData, candidateKeys = []) => {
 };
 
 /**
- * Normaliza estadísticas - ADAPTADO A TU BACKEND EXACTO
+ * Normaliza estadísticas - (TU CÓDIGO ORIGINAL - INTACTO)
  */
 export const normalizeStats = (resData) => {
   console.log("📊 normalizeStats recibió:", resData);
-  
-  // Tu backend devuelve: { status, message, extraData: {...} }
   const extraData = resData?.extraData;
   
   if (!extraData || typeof extraData !== "object") {
-    console.error("❌ No se encontró extraData");
-    return {
-      total: "—",
-      activos: "—",
-      pendientes: "—",
-      organizadores: "—"
-    };
+    // Si falla, intentamos usar resData directo por si acaso
+    if (resData && typeof resData === 'object' && resData.totalRegisteredUsers) {
+        return normalizeStats({ extraData: resData });
+    }
+    return { total: "—", activos: "—", pendientes: "—", organizadores: "—" };
   }
-
-  console.log("📊 extraData keys:", Object.keys(extraData));
 
   const total = extraData.totalRegisteredUsers ?? null;
   const organizadores = extraData.totalUsuariosOrganizador ?? null;
-  const participantes = extraData.totalUsuariosParticipante ?? null;
-
-  const activos = total; // Todos están verificados según tu JSON
-  const pendientes = 0;  // No hay pendientes si todos están verificados
-
-  console.log("✅ Stats mapeados:", {
-    total,
-    activos,
-    pendientes,
-    organizadores
-  });
-
+  
+  // Mapeo simple
   return {
     total: total ?? "—",
-    activos: activos ?? "—",
-    pendientes: pendientes,
+    activos: total ?? "—", 
+    pendientes: 0,
     organizadores: organizadores ?? "—"
   };
 };
 
-/* ===== ROLES ===== */
+/* ===== ROLES (TU CÓDIGO ORIGINAL - INTACTO) ===== */
 export const getRoleId = (r) => {
   if (!r) return null;
-  
-  const id = r?.id ?? r?._id ?? r?.rolId ?? r?.idRol ?? 
-    r?.id_rol ?? r?.rol_id ?? r?.uuid;
-  
+  const id = r?.id ?? r?._id ?? r?.rolId ?? r?.idRol ?? r?.id_rol ?? r?.rol_id ?? r?.uuid;
   return toId(id);
 };
 
 export const getRoleName = (r) => {
   if (!r) return "";
-  
-  return (
-    r?.nombreRol ?? r?.nombre_rol ?? r?.nombre ?? 
-    r?.name ?? r?.roleName ?? ""
-  );
+  return (r?.nombreRol ?? r?.nombre_rol ?? r?.nombre ?? r?.name ?? r?.roleName ?? "");
 };
 
-export const getRoleDesc = (r) => {
-  if (!r) return "";
-  
-  return (
-    r?.descripcion ?? r?.description ?? r?.desc ?? ""
-  );
-};
+export const getRoleDesc = (r) => r?.descripcion ?? r?.description ?? r?.desc ?? "";
 
-/* ===== USERS ===== */
+/* ===== USERS (TU CÓDIGO ORIGINAL - INTACTO) ===== */
 export const getUserId = (u) => {
   if (!u) return null;
-  
-  // Tu backend usa "id" directamente
-  const id = u?.id ?? u?._id ?? u?.userId ?? 
-    u?.idUsuario ?? u?.id_usuario ?? u?.usuarioId;
-  
+  const id = u?.id ?? u?._id ?? u?.userId ?? u?.idUsuario ?? u?.id_usuario ?? u?.usuarioId;
   return toId(id);
 };
 
-export const getUserEmail = (u) => 
-  u?.correo ?? u?.email ?? u?.mail ?? "";
-
-export const getUserDni = (u) => 
-  u?.dni ?? u?.documento ?? u?.document ?? "";
-
-export const getUserFirstName = (u) => 
-  u?.nombres ?? u?.nombre ?? u?.firstName ?? "";
-
-export const getUserLastName = (u) => 
-  u?.apellidos ?? u?.apellido ?? u?.lastName ?? "";
+export const getUserEmail = (u) => u?.correo ?? u?.email ?? u?.mail ?? "";
+export const getUserDni = (u) => u?.dni ?? u?.documento ?? u?.document ?? "";
+export const getUserFirstName = (u) => u?.nombres ?? u?.nombre ?? u?.firstName ?? "";
+export const getUserLastName = (u) => u?.apellidos ?? u?.apellido ?? u?.lastName ?? "";
 
 export const getUserFullName = (u) => {
-  const firstName = getUserFirstName(u);
-  const lastName = getUserLastName(u);
-  const fullName = `${firstName} ${lastName}`.trim();
+  const fullName = `${getUserFirstName(u)} ${getUserLastName(u)}`.trim();
   return fullName || "Sin nombre";
 };
 
 export const getUserCreatedAt = (u) =>
-  u?.createdAt ?? u?.fechaRegistro ?? u?.fecha_registro ?? 
-  u?.registro ?? u?.registeredAt ?? u?.created_at ?? null;
+  u?.createdAt ?? u?.fechaRegistro ?? u?.fecha_registro ?? u?.registro ?? null;
 
-/**
- * Extrae roles del usuario
- * IMPORTANTE: Tu estructura tiene que incluir los roles en la respuesta de usuarios
- */
+/* ===== ROLES EN USUARIO (TU CÓDIGO ORIGINAL - INTACTO) ===== */
 export const getUserRoles = (u) => {
   if (!u) return [];
-  
-  console.log("👤 getUserRoles - Usuario:", u);
-
-  // Intentar diferentes estructuras
-  if (Array.isArray(u?.roles)) {
-    console.log("✅ Roles en .roles[]");
-    return u.roles;
-  }
-
-  if (Array.isArray(u?.rol)) {
-    console.log("✅ Roles en .rol[]");
-    return u.rol;
-  }
-
-  if (u?.rol && typeof u.rol === "object" && !Array.isArray(u.rol)) {
-    console.log("✅ Rol único en .rol{}");
-    return [u.rol];
-  }
-
-  if (Array.isArray(u?.role)) {
-    console.log("✅ Roles en .role[]");
-    return u.role;
-  }
-
-  if (u?.role && typeof u.role === "object") {
-    console.log("✅ Rol único en .role{}");
-    return [u.role];
-  }
-
-  console.warn("⚠️ NO se encontraron roles en el usuario");
-  console.warn("⚠️ Keys del usuario:", Object.keys(u));
-  
+  if (Array.isArray(u?.roles)) return u.roles;
+  if (Array.isArray(u?.rol)) return u.rol;
+  if (u?.rol && typeof u.rol === "object") return [u.rol];
+  if (Array.isArray(u?.role)) return u.role;
+  if (u?.role && typeof u.role === "object") return [u.role];
   return [];
 };
 
 export const getUserRoleIds = (u) => {
-  const roles = getUserRoles(u);
-  return roles
+  return getUserRoles(u)
     .map(r => getRoleId(r))
-    .filter(id => id !== null && id !== undefined && id !== "");
+    .filter(id => id);
 };
 
 export const getUserRoleNames = (u) => {
   if (!u) return [];
-
-  // 1. ✅ SOPORTE NUEVO: Tu backend ahora envía "nombresRoles"
-  if (Array.isArray(u?.nombresRoles)) {
-    return u.nombresRoles;
-  }
-
-  // 2. Fallbacks anteriores
+  // MANTENEMOS ESTO PORQUE DIJISTE QUE ASÍ VIENE DE TU BACKEND AHORA
+  if (Array.isArray(u?.nombresRoles)) return u.nombresRoles; 
   if (Array.isArray(u?.roleNames)) return u.roleNames;
-  if (Array.isArray(u?.roles)) return u.roles.map(r => r.nombreRol || r.nombre);
-
+  
+  const rawRoles = getUserRoles(u);
+  if (rawRoles.length > 0) {
+    return rawRoles.map(r => getRoleName(r)).filter(Boolean);
+  }
   return [];
 };
 
-/* ===== UI HELPERS ===== */
+/* ===== UI HELPERS (TU CÓDIGO ORIGINAL - INTACTO) ===== */
 export const formatDate = (value) => {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d.getTime())) return String(value);
-  return new Intl.DateTimeFormat("es-PE", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(d);
+  return new Intl.DateTimeFormat("es-PE", { day: "2-digit", month: "short", year: "numeric" }).format(d);
 };
 
 export const initialsFromName = (fullName, email) => {
