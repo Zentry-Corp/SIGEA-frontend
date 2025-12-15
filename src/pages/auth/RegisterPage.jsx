@@ -220,10 +220,10 @@ const RegisterPage = () => {
                 <FiUserPlus size={32} />
               </IconWrapper>
               <Title>
-                Regístrate en <Highlight>SIGEA</Highlight>
+                Bienvenido a <Highlight>SIGEA</Highlight>
               </Title>
               <Subtitle>
-                Crea tu cuenta para gestionar eventos académicos
+                Descubre talleres, cursos y eventos diseñados para acompañar tu aprendizaje
               </Subtitle>
             </Header>
 

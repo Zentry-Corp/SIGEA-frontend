@@ -46,7 +46,6 @@ const LoginModal = ({ isOpen, onClose }) => {
     }
 
     authApi.logout(); // Limpiar posibles sesiones previas
-    console.log("🚀 [LOGIN] Iniciando proceso de login...");
 
     try {
       const result = await login({
@@ -55,7 +54,6 @@ const LoginModal = ({ isOpen, onClose }) => {
         rememberMe,
       });
 
-      console.log("📊 [LOGIN] Result completo:", result);
 
       // ❌ LOGIN FALLÓ (backend o hook devuelve error)
       if (!result.success) {
@@ -66,8 +64,7 @@ const LoginModal = ({ isOpen, onClose }) => {
         return;
       }
 
-      // ✅ LOGIN EXITOSO
-      console.log("🎉 Login exitoso");
+      
 
       const token = sessionStorage.getItem("sigea_token");
       if (!token) {
@@ -89,8 +86,6 @@ const LoginModal = ({ isOpen, onClose }) => {
         });
         return;
       }
-
-      console.log("🎭 Rol:", rol);
 
       // cerrar modal
       onClose();
@@ -116,7 +111,6 @@ const LoginModal = ({ isOpen, onClose }) => {
         }
       }, 150);
     } catch (err) {
-      console.error("❌ Error en login:", err);
 
       setErrorModal({
         open: true,
@@ -137,9 +131,6 @@ const LoginModal = ({ isOpen, onClose }) => {
           <Title>
             Bienvenido a <Highlight>SIGEA</Highlight>
           </Title>
-          <Subtitle>
-            Inicia sesión para gestionar tus eventos y certificados.
-          </Subtitle>
         </Header>
 
         <Form onSubmit={handleSubmit}>

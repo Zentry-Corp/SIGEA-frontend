@@ -112,7 +112,6 @@ const OrganizerDashboardPage = () => {
         <Header>
           <HeaderContent>
             <Title>Panel de Control</Title>
-            <Breadcrumb>Inicio / Dashboard</Breadcrumb>
           </HeaderContent>
           <HeaderAction>
             <CreateButton
