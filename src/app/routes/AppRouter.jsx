@@ -12,6 +12,9 @@ import CertificacionPage from '../../pages/organizer/CertificacionPage';
 import PrivateRoute from './PrivateRoute';
 import RoleRoute from './RoleRoute';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import AdminUsersPage from '../../pages/admin/AdminUsersPage';
+import AdminRolesPage from '../../pages/admin/AdminRolesPage';
+
 
 // Componente para redirigir según rol
 const RoleRedirect = () => {
@@ -124,6 +127,27 @@ function AppRouter() {
               </RoleRoute>
             </PrivateRoute>
           } 
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                <AdminUsersPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/admin/roles"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                <AdminRolesPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
         />
 
         {/* ==================== RUTA 404 ==================== */}
