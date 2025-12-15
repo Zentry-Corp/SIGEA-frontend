@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Panel } from "../AdminLayout.styles";
+import { Panel } from "../adminLayout.styles";
 
 /* --- Contenedores y Filtros --- */
 export const Controls = styled.div`

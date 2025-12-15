@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../features/admin/ui/AdminLayout";
 import { 
   PageHeader, WelcomeCard, WelcomeText, PrimaryButton, Grid, Alert 
-} from "../../features/admin/ui/AdminLayout.styles";
+} from "../../features/admin/ui/adminLayout.styles.js";
 
 // 1. Hook Nuevo
 import { useAdminStats } from "../../features/admin/hooks/useAdminStats";

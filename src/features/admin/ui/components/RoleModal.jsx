@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { 
   ModalOverlay, ModalCard, ModalHeader, ModalBody, ModalFooter, 
   Field, Label, Input, Textarea, SecondaryButton, PrimaryButton, Alert 
-} from "../AdminLayout.styles";
+} from "../adminLayout.styles";
 
 // INTEGRACIÓN: Constants y Services
 import { MODAL_TITLES, ROLE_FORM_FIELDS } from "../../constants/roles.constants"; // [cite: 436-438]

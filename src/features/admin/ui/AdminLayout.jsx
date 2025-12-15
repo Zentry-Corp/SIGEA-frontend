@@ -1,5 +1,5 @@
 import React from "react";
-import { AdminShell, Sidebar, Content } from "./AdminLayout.styles";
+import { AdminShell, Sidebar, Content } from "./adminLayout.styles";
 import AdminSidebar from "./AdminSidebar";
 
 const AdminLayout = ({ children }) => {

@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
-import { Panel, SectionTitle, QuickRow, QuickAction } from "../AdminLayout.styles";
+import { Panel, SectionTitle, QuickRow, QuickAction } from "../adminLayout.styles";
 // Importamos la función generadora de tu servicio y los iconos necesarios
 import { generateQuickActions } from "../../services/statsService"; // [cite: 451]
 import { FiUsers, FiCheckCircle, FiClock } from "react-icons/fi";

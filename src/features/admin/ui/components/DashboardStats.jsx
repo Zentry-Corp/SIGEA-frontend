@@ -1,6 +1,6 @@
 import React from "react";
 import { FiUsers, FiCheckCircle, FiClock, FiUser } from "react-icons/fi";
-import { StatsGrid, StatCard } from "../AdminLayout.styles"; // Reusamos tus estilos existentes
+import { StatsGrid, StatCard } from "../adminLayout.styles"; // Reusamos tus estilos existentes
 import { STAT_TONES } from "../../constants/dashboard.constants"; // [cite: 426]
 
 export const DashboardStats = ({ stats, loading }) => {
