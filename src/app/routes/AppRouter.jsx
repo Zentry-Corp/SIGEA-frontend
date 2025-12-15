@@ -1,25 +1,51 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import { LandingPage } from "../../pages/public";
 import { RegisterPage } from "../../pages/auth";
+
 import { ParticipantDashboardPage } from "../../pages/participant";
 import { AdminDashboardPage } from "../../pages/admin";
 import OrganizerDashboardPage from "../../pages/organizer/OrganizerDashboardPage";
+
 import ActividadesPage from "../../pages/organizer/ActividadesPage";
 import CrearActividadPage from "../../pages/organizer/CrearActividadPage";
+import EditarActividadPage from "../../pages/organizer/EditarActividadPage";
 import ParticipantesPage from "../../pages/organizer/ParticipantesPage";
 import GestionarSesionesPage from "../../pages/organizer/GestionarSesionesPage";
 import CertificacionPage from "../../pages/organizer/CertificacionPage";
-import CrearSesionPage from "../../pages/organizer/CrearSesionPage";
+import PagosPage from "../../pages/organizer/PagosPage";
+
+// ✅ Rutas que tú agregaste (participante)
+import ParticipantEventsPage from "../../pages/participant/ParticipantEventsPage";
+import { ParticipantInscriptionsPage } from "../../pages/participant/ParticipantInscriptionsPage";
+import { ParticipantCertificatesPage } from "../../pages/participant/ParticipantCertificatesPage";
+import ParticipantNotificationsPage from "../../pages/participant/ParticipantNotificationsPage";
+
 import PrivateRoute from "./PrivateRoute";
 import RoleRoute from "./RoleRoute";
 import { useAuth } from "../../features/auth/hooks/useAuth";
-import EditarActividadPage from "../../pages/organizer/EditarActividadPage";
-import PagosPage from '../../pages/organizer/PagosPage';
 
-// Componente para redirigir según rol
+// ✅ Redirección por rol + loading (tu mejora)
 const RoleRedirect = () => {
-  const { role } = useAuth();
+  const { role, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          background: "#0a1628",
+          color: "white",
+        }}
+      >
+        Cargando...
+      </div>
+    );
+  }
 
   switch (role?.toUpperCase()) {
     case "ADMINISTRADOR":
@@ -42,7 +68,15 @@ function AppRouter() {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* ==================== REDIRECCIÓN POR ROL ==================== */}
-        <Route path="/dashboard" element={<RoleRedirect />} />
+        {/* ✅ Protegida como tu versión anterior */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <RoleRedirect />
+            </PrivateRoute>
+          }
+        />
 
         {/* ==================== RUTAS PARTICIPANTE ==================== */}
         <Route
@@ -51,6 +85,51 @@ function AppRouter() {
             <PrivateRoute>
               <RoleRoute allowedRoles={["PARTICIPANTE"]}>
                 <ParticipantDashboardPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        {/* ✅ Tus rutas nuevas */}
+        <Route
+          path="/participante/eventos"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["PARTICIPANTE"]}>
+                <ParticipantEventsPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/participante/inscripciones"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["PARTICIPANTE"]}>
+                <ParticipantInscriptionsPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/participante/certificados"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["PARTICIPANTE"]}>
+                <ParticipantCertificatesPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/participante/notificaciones"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["PARTICIPANTE"]}>
+                <ParticipantNotificationsPage />
               </RoleRoute>
             </PrivateRoute>
           }
@@ -106,6 +185,18 @@ function AppRouter() {
           }
         />
 
+        {/* Gestión de Actividades - Editar */}
+        <Route
+          path="/organizador/actividades/editar/:id"
+          element={
+            <PrivateRoute>
+              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
+                <EditarActividadPage />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        />
+
         {/* Participantes y Asistencia */}
         <Route
           path="/organizador/participantes"
@@ -125,17 +216,6 @@ function AppRouter() {
             <PrivateRoute>
               <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
                 <CertificacionPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-        {/* Gestión de Actividades - Editar */}
-        <Route
-          path="/organizador/actividades/editar/:id"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["ORGANIZADOR", "ADMINISTRADOR"]}>
-                <EditarActividadPage />
               </RoleRoute>
             </PrivateRoute>
           }

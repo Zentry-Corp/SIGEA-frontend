@@ -321,10 +321,8 @@ const CrearActividadPage = () => {
         <Header>
           <HeaderContent>
             <Title>Crear Nueva Actividad</Title>
-            <Subtitle>
-              Configura y publica un nueva actividad ciclo de conferencias,
-              talleres y más
-            </Subtitle>
+            <Subtitle>Configura y publica un nueva actividad ciclo de conferencias, talleres y más</Subtitle>
+
           </HeaderContent>
         </Header>
 

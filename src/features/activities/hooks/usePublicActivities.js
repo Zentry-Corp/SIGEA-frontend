@@ -1,57 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
-import { publicActivitiesApi } from '../api/publicActivitiesApi';
+// src/features/activities/hooks/usePublicActivities.js
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { activitiesApi } from "../api/activitiesApi";
 
-export const usePublicActivities = (limit = 6) => {
+export const usePublicActivities = (options = {}) => {
+  const {
+    allowedStates = ["PUBLICADO", "EN_CURSO", "PENDIENTE"], // ajusta si quieres
+    onlyAllowedStates = true,
+  } = options;
+
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchActivities = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
+      const res = await activitiesApi.listar();
 
-      const data = await publicActivitiesApi.listarPublicas();
-
-      console.log('✅ Actividades públicas cargadas:', data);
-
-      const actividades = data
-        .slice(0, limit)
-        .map(activity => ({
-          id: activity.id,
-          titulo: activity.titulo,
-          descripcion: activity.descripcion,
-          imagen: activity.bannerUrl ?? null,
-          fechaInicio: activity.fechaInicio,
-          fechaFin: activity.fechaFin,
-          horaInicio: activity.horaInicio,
-          horaFin: activity.horaFin,
-          modalidad: activity.modalidad ?? 'PRESENCIAL',
-          lugar: activity.ubicacion ?? '',
-          vacantes: activity.vacantes ?? null,
-          precio: activity.precio ?? 0,
-          estado: activity.estado, // objeto { codigo, etiqueta }
-          organizador: activity.coOrganizador ?? '',
-          sesiones: activity.sesiones ?? [],
-        }));
-
-      setActivities(actividades);
-    } catch (err) {
-      console.error('❌ Error cargando actividades públicas:', err);
-      setError('Error al cargar actividades');
+      // backend a veces devuelve array directo o envuelto
+      const list = Array.isArray(res) ? res : res?.extraData ?? res?.data ?? [];
+      setActivities(Array.isArray(list) ? list : []);
+    } catch (e) {
+      console.error("❌ Error al listar actividades (public):", e);
+      setError(e?.message || "Error cargando actividades");
     } finally {
       setLoading(false);
     }
-  }, [limit]);
+  }, []);
 
   useEffect(() => {
     fetchActivities();
   }, [fetchActivities]);
 
+  const filtered = useMemo(() => {
+    if (!onlyAllowedStates) return activities;
+
+    const allowed = new Set(allowedStates);
+    return (activities || []).filter((a) => allowed.has(a?.estado?.codigo));
+  }, [activities, allowedStates, onlyAllowedStates]);
+
   return {
-    activities,
+    activities: filtered,
+    allActivities: activities,
     loading,
     error,
     refetch: fetchActivities,
   };
 };
+
+export default usePublicActivities;
