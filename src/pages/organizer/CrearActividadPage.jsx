@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
 import {
   FiSave,
   FiX,
@@ -12,16 +12,18 @@ import {
   FiUser,
   FiUpload,
   FiInfo,
-  FiList
-} from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../features/auth/hooks/useAuth';
-import OrganizerLayout from './OrganizerLayout';
-import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
-import { useCreateActivity } from '../../features/activities/hooks/useCreateActivity';
-import { bannersApi } from '../../features/activities/api';
-
-
+  FiList,
+} from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+import OrganizerLayout from "./OrganizerLayout";
+import {
+  AlertError,
+  AlertSuccess,
+  AlertWarning,
+} from "@/shared/ui/components/Alert";
+import { useCreateActivity } from "../../features/activities/hooks/useCreateActivity";
+import { bannersApi } from "../../features/activities/api";
 
 const CrearActividadPage = () => {
   const navigate = useNavigate();
@@ -29,22 +31,21 @@ const CrearActividadPage = () => {
   const [loading, setLoading] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false); // ← AGREGADO
 
-
   const [formData, setFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    fechaInicio: '',
-    fechaFin: '',
-    horaInicio: '',
-    horaFin: '',
-    estadoId: '',
-    organizadorId: '',
-    tipoActividadId: '',
-    ubicacion: '',
-    coOrganizador: '',
-    sponsor: '',
-    bannerUrl: '',
-    numeroYape: ''
+    titulo: "",
+    descripcion: "",
+    fechaInicio: "",
+    fechaFin: "",
+    horaInicio: "",
+    horaFin: "",
+    estadoId: "",
+    organizadorId: "",
+    tipoActividadId: "",
+    ubicacion: "",
+    coOrganizador: "",
+    sponsor: "",
+    bannerUrl: "",
+    numeroYape: "",
   });
 
   const {
@@ -68,8 +69,6 @@ const CrearActividadPage = () => {
   const [errorModal, setErrorModal] = useState({
     open: false,
     message: "",
-
-
   });
 
   const [successBannerModal, setSuccessBannerModal] = useState({
@@ -82,26 +81,24 @@ const CrearActividadPage = () => {
     message: "",
   });
 
-
   const [warningModal, setWarningModal] = useState({
     open: false,
     message: "",
   });
 
-
   // Cargar tipos de actividad y estados
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Limpiar error del campo
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -112,11 +109,18 @@ const CrearActividadPage = () => {
     if (!file) return;
 
     // Validar tipo de archivo
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
     if (!validTypes.includes(file.type)) {
       setErrorModal({
         open: true,
-        message: 'Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, GIF, WEBP)'
+        message:
+          "Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, GIF, WEBP)",
       });
 
       return;
@@ -126,7 +130,7 @@ const CrearActividadPage = () => {
     if (file.size > 10485760) {
       setErrorModal({
         open: true,
-        message: 'El tamaño del archivo no puede exceder 10MB'
+        message: "El tamaño del archivo no puede exceder 10MB",
       });
 
       return;
@@ -140,30 +144,31 @@ const CrearActividadPage = () => {
 
       if (data.url) {
         // Construir la URL completa usando la variable de entorno
-        const bannerUrl = bannersApi.obtenerUrl(data.url.split('/').pop());
+        const bannerUrl = bannersApi.obtenerUrl(data.url.split("/").pop());
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          bannerUrl: bannerUrl
+          bannerUrl: bannerUrl,
         }));
 
         setSuccessBannerModal({
           open: true,
-          message: 'Banner subido exitosamente'
+          message: "Banner subido exitosamente",
         });
       } else {
-        throw new Error('No se recibió URL del banner');
+        throw new Error("No se recibió URL del banner");
       }
     } catch (error) {
-      console.error('❌ Error al subir banner:', error);
+      console.error("❌ Error al subir banner:", error);
 
-      const errorMessage = error.response?.data?.message
-        || error.message
-        || 'Error al subir el banner. Por favor, inténtalo de nuevo';
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Error al subir el banner. Por favor, inténtalo de nuevo";
 
       setErrorModal({
         open: true,
-        message: errorMessage
+        message: errorMessage,
       });
     } finally {
       setUploadingBanner(false);
@@ -174,41 +179,51 @@ const CrearActividadPage = () => {
     const newErrors = {};
 
     if (!formData.titulo.trim()) {
-      newErrors.titulo = 'El título es obligatorio';
+      newErrors.titulo = "El título es obligatorio";
     }
 
     if (!formData.descripcion.trim()) {
-      newErrors.descripcion = 'La descripción es obligatoria';
+      newErrors.descripcion = "La descripción es obligatoria";
     }
 
     if (!formData.fechaInicio) {
-      newErrors.fechaInicio = 'La fecha de inicio es obligatoria';
+      newErrors.fechaInicio = "La fecha de inicio es obligatoria";
     }
 
     if (!formData.fechaFin) {
-      newErrors.fechaFin = 'La fecha de fin es obligatoria';
+      newErrors.fechaFin = "La fecha de fin es obligatoria";
     }
 
     if (formData.fechaInicio && formData.fechaFin) {
       if (new Date(formData.fechaFin) < new Date(formData.fechaInicio)) {
-        newErrors.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio';
+        newErrors.fechaFin =
+          "La fecha de fin debe ser posterior a la fecha de inicio";
       }
     }
 
     if (!formData.horaInicio) {
-      newErrors.horaInicio = 'La hora de inicio es obligatoria';
+      newErrors.horaInicio = "La hora de inicio es obligatoria";
     }
 
     if (!formData.horaFin) {
-      newErrors.horaFin = 'La hora de fin es obligatoria';
+      newErrors.horaFin = "La hora de fin es obligatoria";
     }
 
     if (!formData.tipoActividadId) {
-      newErrors.tipoActividadId = 'El tipo de actividad es obligatorio';
+      newErrors.tipoActividadId = "El tipo de actividad es obligatorio";
     }
 
     if (!formData.ubicacion.trim()) {
-      newErrors.ubicacion = 'La ubicación es obligatoria';
+      newErrors.ubicacion = "La ubicación es obligatoria";
+    }
+    if (!formData.bannerUrl) {
+      newErrors.bannerUrl = "El banner es obligatorio";
+    }
+    if (!formData.tipoActividadId) {
+      newErrors.tipoActividadId = "El tipo de actividad es obligatorio";
+    }
+    if (!formData.estadoId) {
+      newErrors.estadoId = "El estado de la actividad es obligatorio";
     }
 
     setErrors(newErrors);
@@ -216,7 +231,6 @@ const CrearActividadPage = () => {
   };
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
     if (!validateForm()) {
@@ -253,12 +267,18 @@ const CrearActividadPage = () => {
     try {
       const response = await createActivity(payload);
       console.log("🧪 organizadorId:", formData.organizadorId);
-      console.log("🧪 tipoActividadId:", typeof payload.tipoActividadId, payload.tipoActividadId);
+      console.log(
+        "🧪 tipoActividadId:",
+        typeof payload.tipoActividadId,
+        payload.tipoActividadId
+      );
 
       console.log("🧾 Respuesta del backend:", response);
 
       if (!response?.id) {
-        throw new Error("La actividad no fue creada correctamente. Falta ID en la respuesta.");
+        throw new Error(
+          "La actividad no fue creada correctamente. Falta ID en la respuesta."
+        );
       }
 
       setSuccessActivityModal({
@@ -266,12 +286,10 @@ const CrearActividadPage = () => {
         message: "🎉 La actividad ha sido creada exitosamente.",
       });
 
-
       // retrasar la navegación hasta que cierre el modal
       setTimeout(() => {
         navigate("/organizador/actividades");
       }, 1500);
-
     } catch (error) {
       console.error("❌ Error completo:", error);
 
@@ -285,12 +303,10 @@ const CrearActividadPage = () => {
         open: true,
         message: errorMessage,
       });
-
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleCancel = () => {
     setWarningModal({
@@ -299,15 +315,16 @@ const CrearActividadPage = () => {
     });
   };
 
-
   return (
     <OrganizerLayout>
       <Container>
         <Header>
           <HeaderContent>
             <Title>Crear Nueva Actividad</Title>
-            <Subtitle>Configura y publica un nueva actividad ciclo de conferencias, talleres y más</Subtitle>
-
+            <Subtitle>
+              Configura y publica un nueva actividad ciclo de conferencias,
+              talleres y más
+            </Subtitle>
           </HeaderContent>
         </Header>
 
@@ -319,7 +336,9 @@ const CrearActividadPage = () => {
           <Form onSubmit={handleSubmit}>
             {/* Información Básica */}
             <SectionTitle>
-              <SectionIcon><FiInfo /></SectionIcon>
+              <SectionIcon>
+                <FiInfo />
+              </SectionIcon>
               Información Básica
             </SectionTitle>
 
@@ -353,7 +372,9 @@ const CrearActividadPage = () => {
                   onChange={handleInputChange}
                   $hasError={!!errors.descripcion}
                 />
-                {errors.descripcion && <ErrorMessage>{errors.descripcion}</ErrorMessage>}
+                {errors.descripcion && (
+                  <ErrorMessage>{errors.descripcion}</ErrorMessage>
+                )}
               </FormGroup>
             </FormRow>
 
@@ -375,25 +396,56 @@ const CrearActividadPage = () => {
                     </option>
                   ))}
                 </Select>
-                {errors.tipoActividadId && <ErrorMessage>{errors.tipoActividadId}</ErrorMessage>}
+                {errors.tipoActividadId && (
+                  <ErrorMessage>{errors.tipoActividadId}</ErrorMessage>
+                )}
                 {tipos.length === 0 && (
                   <HelpText>Cargando tipos de actividad...</HelpText>
                 )}
               </FormGroup>
 
-              <FormGroup> <Label> Estado </Label> <Select name="estadoId" value={formData.estadoId} onChange={handleInputChange} > <option value="">Seleccionar estado (opcional)</option> {estados.map((estado) => (<option key={estado.id} value={estado.id}> {estado.etiqueta} </option>))} </Select> {estados.length === 0 && (<HelpText>Cargando estados...</HelpText>)} </FormGroup>
+              <FormGroup>
+                <Label>
+                  Estado <Required>*</Required>
+                </Label>
+
+                <Select
+                  name="estadoId"
+                  value={formData.estadoId}
+                  onChange={handleInputChange}
+                  $hasError={!!errors.estadoId}
+                >
+                  <option value="">Seleccionar estado</option>
+                  {estados.map((estado) => (
+                    <option key={estado.id} value={estado.id}>
+                      {estado.etiqueta}
+                    </option>
+                  ))}
+                </Select>
+
+                {errors.estadoId && (
+                  <ErrorMessage>{errors.estadoId}</ErrorMessage>
+                )}
+
+                {estados.length === 0 && (
+                  <HelpText>Cargando estados...</HelpText>
+                )}
+              </FormGroup>
             </FormRow>
 
             {/* Fechas y Horarios */}
             <SectionTitle>
-              <SectionIcon><FiCalendar /></SectionIcon>
+              <SectionIcon>
+                <FiCalendar />
+              </SectionIcon>
               Fechas y Horarios
             </SectionTitle>
 
             <FormRow $columns={2}>
               <FormGroup>
                 <Label>
-                  <FiCalendar size={16} /> Fecha de Inicio <Required>*</Required>
+                  <FiCalendar size={16} /> Fecha de Inicio{" "}
+                  <Required>*</Required>
                 </Label>
                 <Input
                   type="date"
@@ -402,7 +454,9 @@ const CrearActividadPage = () => {
                   onChange={handleInputChange}
                   $hasError={!!errors.fechaInicio}
                 />
-                {errors.fechaInicio && <ErrorMessage>{errors.fechaInicio}</ErrorMessage>}
+                {errors.fechaInicio && (
+                  <ErrorMessage>{errors.fechaInicio}</ErrorMessage>
+                )}
                 <HelpText>Formato: YYYY-MM-DD</HelpText>
               </FormGroup>
 
@@ -417,7 +471,9 @@ const CrearActividadPage = () => {
                   onChange={handleInputChange}
                   $hasError={!!errors.fechaFin}
                 />
-                {errors.fechaFin && <ErrorMessage>{errors.fechaFin}</ErrorMessage>}
+                {errors.fechaFin && (
+                  <ErrorMessage>{errors.fechaFin}</ErrorMessage>
+                )}
                 <HelpText>Formato: YYYY-MM-DD</HelpText>
               </FormGroup>
             </FormRow>
@@ -434,7 +490,9 @@ const CrearActividadPage = () => {
                   onChange={handleInputChange}
                   $hasError={!!errors.horaInicio}
                 />
-                {errors.horaInicio && <ErrorMessage>{errors.horaInicio}</ErrorMessage>}
+                {errors.horaInicio && (
+                  <ErrorMessage>{errors.horaInicio}</ErrorMessage>
+                )}
                 <HelpText>Formato: HH:MM (24 horas)</HelpText>
               </FormGroup>
 
@@ -449,14 +507,18 @@ const CrearActividadPage = () => {
                   onChange={handleInputChange}
                   $hasError={!!errors.horaFin}
                 />
-                {errors.horaFin && <ErrorMessage>{errors.horaFin}</ErrorMessage>}
+                {errors.horaFin && (
+                  <ErrorMessage>{errors.horaFin}</ErrorMessage>
+                )}
                 <HelpText>Formato: HH:MM (24 horas)</HelpText>
               </FormGroup>
             </FormRow>
 
             {/* Ubicación y Detalles */}
             <SectionTitle>
-              <SectionIcon><FiMapPin /></SectionIcon>
+              <SectionIcon>
+                <FiMapPin />
+              </SectionIcon>
               Ubicación y Detalles
             </SectionTitle>
 
@@ -473,7 +535,9 @@ const CrearActividadPage = () => {
                   onChange={handleInputChange}
                   $hasError={!!errors.ubicacion}
                 />
-                {errors.ubicacion && <ErrorMessage>{errors.ubicacion}</ErrorMessage>}
+                {errors.ubicacion && (
+                  <ErrorMessage>{errors.ubicacion}</ErrorMessage>
+                )}
               </FormGroup>
             </FormRow>
 
@@ -485,17 +549,15 @@ const CrearActividadPage = () => {
                 <Input
                   type="text"
                   name="organizadorNombre"
-                  value={user?.nombres || user?.correo || 'Usuario'}
+                  value={user?.nombres || user?.correo || "Usuario"}
                   disabled
-                  style={{ fontWeight: '600' }}
+                  style={{ fontWeight: "600" }}
                 />
                 <HelpText>Organizador asignado automáticamente</HelpText>
               </FormGroup>
 
               <FormGroup>
-                <Label>
-                  Co-Organizador
-                </Label>
+                <Label>Co-Organizador</Label>
                 <Input
                   type="text"
                   name="coOrganizador"
@@ -508,9 +570,7 @@ const CrearActividadPage = () => {
 
             <FormRow>
               <FormGroup>
-                <Label>
-                  Sponsor
-                </Label>
+                <Label>Sponsor</Label>
                 <Input
                   type="text"
                   name="sponsor"
@@ -523,7 +583,9 @@ const CrearActividadPage = () => {
 
             {/* Recursos Adicionales */}
             <SectionTitle>
-              <SectionIcon><FiImage /></SectionIcon>
+              <SectionIcon>
+                <FiImage />
+              </SectionIcon>
               Recursos Adicionales
             </SectionTitle>
 
@@ -531,7 +593,8 @@ const CrearActividadPage = () => {
               {/* Banner */}
               <FormGroup>
                 <Label>
-                  <FiImage size={16} /> Banner de la Actividad
+                  <FiImage size={16} /> Banner de la Actividad{" "}
+                  <Required>*</Required>
                 </Label>
                 <UploadArea>
                   <FileInputWrapper>
@@ -548,17 +611,23 @@ const CrearActividadPage = () => {
                       $uploading={uploadingBanner}
                     >
                       <FiUpload size={20} />
-                      {uploadingBanner ? 'Subiendo...' : 'Subir Banner'}
+                      {uploadingBanner ? "Subiendo..." : "Subir Banner"}
                     </UploadButton>
                   </FileInputWrapper>
 
                   {formData.bannerUrl && (
                     <BannerPreview>
-                      <PreviewImage src={formData.bannerUrl} alt="Banner preview" />
+                      <PreviewImage
+                        src={formData.bannerUrl}
+                        alt="Banner preview"
+                      />
                       <PreviewUrl>{formData.bannerUrl}</PreviewUrl>
                     </BannerPreview>
                   )}
                 </UploadArea>
+                {errors.bannerUrl && (
+                  <ErrorMessage>{errors.bannerUrl}</ErrorMessage>
+                )}
                 <HelpText>JPG, PNG, GIF o WEBP. Máximo 10MB</HelpText>
               </FormGroup>
 
@@ -579,8 +648,8 @@ const CrearActividadPage = () => {
                     handleInputChange({
                       target: {
                         name: "numeroYape",
-                        value: onlyNumbers.slice(0, 9)
-                      }
+                        value: onlyNumbers.slice(0, 9),
+                      },
                     });
                   }}
                 />
@@ -588,10 +657,7 @@ const CrearActividadPage = () => {
               </FormGroup>
             </FormRow>
 
-
-            <FormRow>
-            </FormRow>
-
+            <FormRow></FormRow>
 
             {/* Botones de Acción */}
             <FormActions>
@@ -607,11 +673,11 @@ const CrearActividadPage = () => {
               <SubmitButton
                 type="submit"
                 disabled={loading || uploadingBanner}
-                whileHover={{ scale: (loading || uploadingBanner) ? 1 : 1.02 }}
-                whileTap={{ scale: (loading || uploadingBanner) ? 1 : 0.98 }}
+                whileHover={{ scale: loading || uploadingBanner ? 1 : 1.02 }}
+                whileTap={{ scale: loading || uploadingBanner ? 1 : 0.98 }}
               >
                 <FiSave size={20} />
-                {loading ? 'Guardando...' : 'Crear Actividad'}
+                {loading ? "Guardando..." : "Crear Actividad"}
               </SubmitButton>
             </FormActions>
           </Form>
@@ -646,8 +712,6 @@ const CrearActividadPage = () => {
           navigate("/organizador/actividades");
         }}
       />
-
-
     </OrganizerLayout>
   );
 };
@@ -670,12 +734,10 @@ const Title = styled.h1`
   color: #0f172a; /* mejor que #1a1a1a */
 `;
 
-
 const Subtitle = styled.p`
   font-size: 1rem;
   color: #475569;
 `;
-
 
 const Breadcrumb = styled.div`
   font-size: 0.9rem;
@@ -716,7 +778,8 @@ const SectionIcon = styled.span`
 
 const FormRow = styled.div`
   display: grid;
-  grid-template-columns: ${props => props.$columns === 2 ? 'repeat(2, 1fr)' : '1fr'};
+  grid-template-columns: ${(props) =>
+    props.$columns === 2 ? "repeat(2, 1fr)" : "1fr"};
   gap: 24px;
 
   @media (max-width: 768px) {
@@ -745,17 +808,19 @@ const Required = styled.span`
 
 const Input = styled.input`
   padding: 12px 16px;
-  border: 2px solid ${props => props.$hasError ? '#ef4444' : '#e5e7eb'};
+  border: 2px solid ${(props) => (props.$hasError ? "#ef4444" : "#e5e7eb")};
   border-radius: 10px;
   font-size: 0.95rem;
   color: #1a1a1a;
   transition: all 0.2s;
-  background: ${props => props.disabled ? '#f9fafb' : 'white'};
+  background: ${(props) => (props.disabled ? "#f9fafb" : "white")};
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#ef4444' : '#4f7cff'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(79, 124, 255, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#ef4444" : "#4f7cff")};
+    box-shadow: 0 0 0 3px
+      ${(props) =>
+        props.$hasError ? "rgba(239, 68, 68, 0.1)" : "rgba(79, 124, 255, 0.1)"};
   }
 
   &::placeholder {
@@ -769,7 +834,7 @@ const Input = styled.input`
 
 const Textarea = styled.textarea`
   padding: 12px 16px;
-  border: 2px solid ${props => props.$hasError ? '#ef4444' : '#e5e7eb'};
+  border: 2px solid ${(props) => (props.$hasError ? "#ef4444" : "#e5e7eb")};
   border-radius: 10px;
   font-size: 0.95rem;
   color: #1a1a1a;
@@ -779,8 +844,10 @@ const Textarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#ef4444' : '#4f7cff'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(79, 124, 255, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#ef4444" : "#4f7cff")};
+    box-shadow: 0 0 0 3px
+      ${(props) =>
+        props.$hasError ? "rgba(239, 68, 68, 0.1)" : "rgba(79, 124, 255, 0.1)"};
   }
 
   &::placeholder {
@@ -790,7 +857,7 @@ const Textarea = styled.textarea`
 
 const Select = styled.select`
   padding: 12px 16px;
-  border: 2px solid ${props => props.$hasError ? '#ef4444' : '#e5e7eb'};
+  border: 2px solid ${(props) => (props.$hasError ? "#ef4444" : "#e5e7eb")};
   border-radius: 10px;
   font-size: 0.95rem;
   color: #1a1a1a;
@@ -800,8 +867,10 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#ef4444' : '#4f7cff'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(79, 124, 255, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#ef4444" : "#4f7cff")};
+    box-shadow: 0 0 0 3px
+      ${(props) =>
+        props.$hasError ? "rgba(239, 68, 68, 0.1)" : "rgba(79, 124, 255, 0.1)"};
   }
 `;
 
@@ -834,7 +903,7 @@ const FileInput = styled.input`
 
 const UploadButton = styled.button`
   padding: 12px 24px;
-  background: ${props => props.$uploading ? '#9ca3af' : '#4f7cff'};
+  background: ${(props) => (props.$uploading ? "#9ca3af" : "#4f7cff")};
   border: none;
   border-radius: 10px;
   color: white;
@@ -843,11 +912,11 @@ const UploadButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  cursor: ${props => props.$uploading ? 'not-allowed' : 'pointer'};
+  cursor: ${(props) => (props.$uploading ? "not-allowed" : "pointer")};
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.$uploading ? '#9ca3af' : '#3b63e0'};
+    background: ${(props) => (props.$uploading ? "#9ca3af" : "#3b63e0")};
   }
 `;
 
