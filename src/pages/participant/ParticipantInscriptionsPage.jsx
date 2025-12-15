@@ -5,8 +5,8 @@ import { FiSearch, FiExternalLink, FiTrash2, FiAward, FiCreditCard } from 'react
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useMyInscriptions } from '../../features/participant/hooks/useMyInscriptions';
 import { inscriptionsApi } from '../../features/participant/api/inscriptionsApi';
+import { paymentsApi } from '../../features/participant/api/paymentsApi';
 import ParticipantLayout from './ParticipantLayout';
-import ParticipantPaymentModal from './ParticipantPaymentModal';
 import { AlertSuccess, AlertError } from '@/shared/ui/components/Alert';
 import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
 
@@ -270,7 +270,6 @@ export const ParticipantInscriptionsPage = () => {
   const [tab, setTab] = useState('TODAS');
   const [busyId, setBusyId] = useState(null);
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [paymentTarget, setPaymentTarget] = useState(null);
   const [successModal, setSuccessModal] = useState({ open: false, message: '' });
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
@@ -332,24 +331,35 @@ export const ParticipantInscriptionsPage = () => {
     }
   };
 
-  const handlePagar = (insc) => {
-    setPaymentTarget(insc);
-  };
+  const handlePagar = async (insc) => {
+    try {
+      setBusyId(insc.id);
 
-  const handlePaymentSuccess = async (message) => {
-    setSuccessModal({
-      open: true,
-      message: message || 'Pago registrado correctamente.',
-    });
-    setPaymentTarget(null);
-    await reload();
-  };
+      const pagos = await paymentsApi.listarPagos();
+      const pago = (pagos || []).find(
+        (p) => String(p.inscripcionId || '').trim() === String(insc.id || '').trim(),
+      );
 
-  const handlePaymentError = (message) => {
-    setErrorModal({
-      open: true,
-      message: message || 'No se pudo procesar el pago.',
-    });
+      if (!pago || (!pago.initPoint && !pago.sandboxInitPoint)) {
+        setErrorModal({
+          open: true,
+          message:
+            'Aún no hay un enlace de pago configurado para esta inscripción. Contacta al organizador.',
+        });
+        return;
+      }
+
+      const url = pago.initPoint || pago.sandboxInitPoint;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        'No se pudo obtener el enlace de pago. Inténtalo nuevamente.';
+      setErrorModal({ open: true, message: msg });
+    } finally {
+      setBusyId(null);
+    }
   };
 
   return (
@@ -494,14 +504,6 @@ export const ParticipantInscriptionsPage = () => {
         onClose={() => setSelectedActivity(null)}
       />
 
-      <ParticipantPaymentModal
-        open={!!paymentTarget}
-        inscription={paymentTarget}
-        onClose={() => setPaymentTarget(null)}
-        onSuccess={handlePaymentSuccess}
-        onError={handlePaymentError}
-      />
-
       <AlertSuccess
         open={successModal.open}
         message={successModal.message}
@@ -518,4 +520,3 @@ export const ParticipantInscriptionsPage = () => {
 };
 
 export default ParticipantInscriptionsPage;
-

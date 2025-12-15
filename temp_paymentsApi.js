@@ -19,13 +19,6 @@ export const paymentsApi = {
     const res = await apiClient.get('/metodo-pago/listar-metodos-pago');
     return res.data;
   },
-
-  // Listar pagos registrados (incluye URLs de MercadoPago)
-  listarPagos: async () => {
-    const res = await apiClient.get('/pagos/listar-pagos');
-    return res.data;
-  },
 };
 
 export default paymentsApi;
-
