@@ -26,13 +26,15 @@ const PublicHeader = () => {
     <>
       <HeaderContainer $isScrolled={isScrolled}>
         <HeaderContent>
-          <Logo>
+          <LogoLink href="/">
+            <Logo>
             <LogoIcon src="/logo-sigea.png" alt="SIGEA" />
             <LogoTextWrapper>
               <LogoTitle>Sistema de Gestión de Eventos Académicos</LogoTitle>
             </LogoTextWrapper>
           </Logo>
 
+          </LogoLink>
           <DesktopNav>
             <NavLink href="#programas">Programas</NavLink>
             <NavLink href="#certificados">Certificados</NavLink>
@@ -109,6 +111,11 @@ const HeaderContainer = styled.header`
   z-index: 1000;
   border-bottom: 1px solid #f0f0f0;
 `;
+const LogoLink = styled.a`
+  text-decoration: none;
+  color: inherit;
+`;
+
 
 const HeaderContent = styled.div`
   max-width: 1400px;
