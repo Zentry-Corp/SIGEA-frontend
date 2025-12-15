@@ -2,7 +2,7 @@
 // Página completa para gestionar sesiones de una actividad
 
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -20,6 +20,8 @@ import {
   FiHome,
   FiMonitor,
   FiInfo,
+  FiExternalLink,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -88,7 +90,7 @@ const GestionarSesionesPage = () => {
   const modalidades = [
     { value: "PRESENCIAL", label: "Presencial", icon: FiHome },
     { value: "VIRTUAL", label: "Virtual", icon: FiVideo },
-    { value: "HIBRIDA", label: "Híbrida", icon: FiMonitor }, // Backend usa HIBRIDA
+    { value: "HIBRIDA", label: "Híbrida", icon: FiMonitor },
   ];
 
   useEffect(() => {
@@ -294,13 +296,26 @@ const GestionarSesionesPage = () => {
     }
   };
 
-  const getModalidadColor = (modalidad) => {
-    const colors = {
-      PRESENCIAL: "#1e40af",
-      VIRTUAL: "#065f46",
-      HIBRIDA: "#92400e",
+  // Configuración de colores por modalidad
+  const getModalidadConfig = (modalidad) => {
+    const configs = {
+      PRESENCIAL: {
+        bgColor: "#d1fae5",
+        color: "#059669",
+        borderColor: "#6ee7b7",
+      },
+      VIRTUAL: {
+        bgColor: "#dbeafe",
+        color: "#2563eb",
+        borderColor: "#93c5fd",
+      },
+      HIBRIDA: {
+        bgColor: "#fef3c7",
+        color: "#d97706",
+        borderColor: "#fcd34d",
+      },
     };
-    return colors[modalidad] || "#475569";
+    return configs[modalidad] || configs.PRESENCIAL;
   };
 
   return (
@@ -308,6 +323,10 @@ const GestionarSesionesPage = () => {
       <Container>
         <Header>
           <HeaderContent>
+            <BackButton onClick={() => navigate("/organizador/actividades")}>
+              <FiArrowLeft />
+              <span>Volver</span>
+            </BackButton>
             <Title>Gestión de Sesiones</Title>
             <Subtitle>Administra las sesiones de la actividad</Subtitle>
           </HeaderContent>
@@ -577,9 +596,28 @@ const GestionarSesionesPage = () => {
           )}
         </AnimatePresence>
 
+        {/* ═══════════════════════════════════════════════════════════════════
+            LISTA DE SESIONES - ESTILOS MEJORADOS
+        ═══════════════════════════════════════════════════════════════════ */}
         <SessionsListContainer>
           {sessionsLoading ? (
-            <LoadingState>Cargando sesiones...</LoadingState>
+            <LoadingContainer>
+              {[1, 2, 3].map((i) => (
+                <SkeletonCard key={i}>
+                  <SkeletonHeader>
+                    <SkeletonBadge $width="100px" />
+                    <SkeletonBadge $width="90px" />
+                  </SkeletonHeader>
+                  <SkeletonTitle />
+                  <SkeletonText />
+                  <SkeletonDetails>
+                    <SkeletonBadge $width="120px" />
+                    <SkeletonBadge $width="100px" />
+                    <SkeletonBadge $width="110px" />
+                  </SkeletonDetails>
+                </SkeletonCard>
+              ))}
+            </LoadingContainer>
           ) : sessions.length === 0 ? (
             <EmptyState>
               <EmptyIcon>📋</EmptyIcon>
@@ -589,62 +627,100 @@ const GestionarSesionesPage = () => {
               </EmptySubtext>
             </EmptyState>
           ) : (
-            sessions.map((session) => (
-              <SessionCard key={session.id}>
-                <SessionHeader>
-                  <SessionNumber>Sesión {session.orden}</SessionNumber>
-                  <ModalidadBadge $color={getModalidadColor(session.modalidad)}>
-                    {session.modalidad}
-                  </ModalidadBadge>
-                  <SessionActions>
-                    <ActionButton onClick={() => handleEdit(session)}>
-                      <FiEdit2 />
-                    </ActionButton>
-                    <ActionButton
-                      $delete
-                      onClick={() => handleDelete(session.id)}
-                    >
-                      <FiTrash2 />
-                    </ActionButton>
-                  </SessionActions>
-                </SessionHeader>
+            <SessionsList>
+              {sessions.map((session) => {
+                const modalidadConfig = getModalidadConfig(session.modalidad);
 
-                <SessionTitle>{session.titulo}</SessionTitle>
-                <SessionDescription>{session.descripcion}</SessionDescription>
+                return (
+                  <SessionCard key={session.id}>
+                    {/* ═══ HEADER: Orden + Modalidad + Acciones ═══ */}
+                    <SessionCardHeader>
+                      <SessionHeaderLeft>
+                        <SessionOrderBadge>
+                          <FiList />
+                          <span>Sesión {session.orden}</span>
+                        </SessionOrderBadge>
+                        <ModalidadBadge {...modalidadConfig}>
+                          {session.modalidad === "VIRTUAL" && <FiVideo />}
+                          {session.modalidad === "PRESENCIAL" && <FiHome />}
+                          {session.modalidad === "HIBRIDA" && <FiMonitor />}
+                          <span>{session.modalidad}</span>
+                        </ModalidadBadge>
+                      </SessionHeaderLeft>
 
-                <SessionDetails>
-                  <DetailItem>
-                    <FiUser />
-                    <span>{session.ponente}</span>
-                  </DetailItem>
-                  <DetailItem>
-                    <FiCalendar />
-                    <span>{formatDate(session.fechaSesion)}</span>
-                  </DetailItem>
-                  <DetailItem>
-                    <FiClock />
-                    <span>
-                      {session.horaInicio} - {session.horaFin}
-                    </span>
-                  </DetailItem>
-                  {session.lugarSesion && (
-                    <DetailItem>
-                      <FiMapPin />
-                      <span>{session.lugarSesion}</span>
-                    </DetailItem>
-                  )}
-                </SessionDetails>
+                      <SessionActions>
+                        <ActionButton
+                          onClick={() => handleEdit(session)}
+                          title="Editar sesión"
+                        >
+                          <FiEdit2 />
+                        </ActionButton>
+                        <ActionButton
+                          $variant="danger"
+                          onClick={() => handleDelete(session.id)}
+                          title="Eliminar sesión"
+                        >
+                          <FiTrash2 />
+                        </ActionButton>
+                      </SessionActions>
+                    </SessionCardHeader>
 
-                {session.linkVirtual && (
-                  <VirtualLink>
-                    <LinkLabel>Link:</LinkLabel>
-                    <LinkValue href={session.linkVirtual} target="_blank">
-                      {session.linkVirtual}
-                    </LinkValue>
-                  </VirtualLink>
-                )}
-              </SessionCard>
-            ))
+                    {/* ═══ CONTENIDO PRINCIPAL ═══ */}
+                    <SessionContent>
+                      <SessionTitle>{session.titulo}</SessionTitle>
+                      <SessionDescription>
+                        {session.descripcion}
+                      </SessionDescription>
+                    </SessionContent>
+
+                    {/* ═══ DETALLES: Fecha, Hora, Ponente, Lugar ═══ */}
+                    <SessionDetailsGrid>
+                      <DetailChip>
+                        <FiCalendar />
+                        <span>{formatDate(session.fechaSesion)}</span>
+                      </DetailChip>
+
+                      <DetailChip $highlight>
+                        <FiClock />
+                        <span>
+                          {session.horaInicio} – {session.horaFin}
+                        </span>
+                      </DetailChip>
+
+                      <DetailChip>
+                        <FiUser />
+                        <span>{session.ponente}</span>
+                      </DetailChip>
+
+                      {session.lugarSesion && (
+                        <DetailChip $location>
+                          <FiMapPin />
+                          <span>{session.lugarSesion}</span>
+                        </DetailChip>
+                      )}
+                    </SessionDetailsGrid>
+
+                    {/* ═══ LINK VIRTUAL ═══ */}
+                    {session.linkVirtual && (
+                      <VirtualLinkContainer>
+                        <VirtualLinkLabel>
+                          <FiLink />
+                          <span>Enlace virtual</span>
+                        </VirtualLinkLabel>
+                        <VirtualLinkAnchor
+                          href={session.linkVirtual}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span>{session.linkVirtual}</span>
+                          <FiExternalLink />
+                        </VirtualLinkAnchor>
+                      </VirtualLinkContainer>
+                    )}
+                  </SessionCard>
+                );
+              })}
+            </SessionsList>
           )}
         </SessionsListContainer>
       </Container>
@@ -684,9 +760,9 @@ const GestionarSesionesPage = () => {
   );
 };
 
-/* ============================================
-   STYLED COMPONENTS
-============================================ */
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STYLED COMPONENTS - FORMULARIO Y LAYOUT (sin cambios)
+═══════════════════════════════════════════════════════════════════════════════ */
 
 const Container = styled.div`
   max-width: 1200px;
@@ -706,6 +782,32 @@ const Header = styled.div`
 `;
 
 const HeaderContent = styled.div``;
+
+const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    color: #4f46e5;
+    border-color: #c7d2fe;
+    background: #f8fafc;
+  }
+`;
 
 const Title = styled.h1`
   font-size: 2rem;
@@ -968,143 +1070,317 @@ const SubmitButton = styled(motion.button)`
   }
 `;
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STYLED COMPONENTS - LISTA DE SESIONES (MEJORADOS)
+═══════════════════════════════════════════════════════════════════════════════ */
+
 const SessionsListContainer = styled.div`
+  margin-top: 8px;
+`;
+
+const SessionsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
-const SessionCard = styled.div`
+/* ─── Tarjeta de Sesión ─── */
+const SessionCard = styled.article`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   padding: 20px;
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 
   &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-color: #c7d2fe;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    padding: 16px;
   }
 `;
 
-const SessionHeader = styled.div`
+/* ─── Header de la Tarjeta ─── */
+const SessionCardHeader = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 `;
 
-const SessionNumber = styled.div`
-  font-size: 0.85rem;
+const SessionHeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+
+/* ─── Badge de Orden ─── */
+const SessionOrderBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #5b7cff;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+
+  svg {
+    font-size: 0.9rem;
+  }
 `;
 
+/* ─── Badge de Modalidad ─── */
 const ModalidadBadge = styled.div`
-  padding: 4px 10px;
-  background: ${(props) => `${props.$color}15`};
-  border: 1px solid ${(props) => props.$color};
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: ${(props) => props.$color};
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 6px;
+  background: ${({ bgColor }) => bgColor};
+  color: ${({ color }) => color};
+  border: 1px solid ${({ borderColor }) => borderColor};
+
+  svg {
+    font-size: 0.8rem;
+  }
 `;
 
+/* ─── Acciones (Editar / Eliminar) ─── */
 const SessionActions = styled.div`
   display: flex;
   gap: 8px;
-  margin-left: auto;
+
+  @media (max-width: 480px) {
+    align-self: flex-end;
+  }
 `;
 
 const ActionButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: ${(props) => (props.$delete ? "#FEE2E2" : "#ffffff")};
-  border: 1px solid ${(props) => (props.$delete ? "#FCA5A5" : "#e5e7eb")};
-  border-radius: 6px;
-  color: ${(props) => (props.$delete ? "#DC2626" : "#6b7280")};
+  width: 36px;
+  height: 36px;
+  background: ${({ $variant }) =>
+    $variant === "danger" ? "#fef2f2" : "#f8fafc"};
+  border: 1px solid
+    ${({ $variant }) => ($variant === "danger" ? "#fecaca" : "#e2e8f0")};
+  border-radius: 8px;
+  color: ${({ $variant }) => ($variant === "danger" ? "#dc2626" : "#64748b")};
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 1rem;
+  }
 
   &:hover {
-    background: ${(props) => (props.$delete ? "#DC2626" : "#5B7CFF")};
-    border-color: ${(props) => (props.$delete ? "#DC2626" : "#5B7CFF")};
+    background: ${({ $variant }) =>
+      $variant === "danger" ? "#dc2626" : "#4f46e5"};
+    border-color: ${({ $variant }) =>
+      $variant === "danger" ? "#dc2626" : "#4f46e5"};
     color: #ffffff;
+    transform: translateY(-1px);
   }
 `;
 
+/* ─── Contenido Principal ─── */
+const SessionContent = styled.div`
+  margin-bottom: 16px;
+`;
+
 const SessionTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1e293b;
   margin: 0 0 8px 0;
+  line-height: 1.4;
 `;
 
 const SessionDescription = styled.p`
   font-size: 0.9rem;
-  color: #6b7280;
-  margin: 0 0 16px 0;
-  line-height: 1.5;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
-const SessionDetails = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-`;
-
-const DetailItem = styled.div`
+/* ─── Grid de Detalles ─── */
+const SessionDetailsGrid = styled.div`
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #374151;
-
-  svg {
-    color: #5b7cff;
-    flex-shrink: 0;
-  }
-
-  span {
-    font-weight: 500;
-  }
-`;
-
-const VirtualLink = styled.div`
-  margin-top: 12px;
-  padding: 12px;
-  background: #e0e7ff;
-  border-radius: 8px;
-`;
-
-const LinkLabel = styled.div`
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #3730a3;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 4px;
 `;
 
-const LinkValue = styled.a`
+const DetailChip = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+
+  svg {
+    font-size: 0.85rem;
+    color: ${({ $highlight, $location }) =>
+      $highlight ? "#4f46e5" : $location ? "#ef4444" : "#94a3b8"};
+    flex-shrink: 0;
+  }
+
+  ${({ $highlight }) =>
+    $highlight &&
+    `
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border-color: #c7d2fe;
+    color: #4338ca;
+    font-weight: 600;
+  `}
+
+  @media (max-width: 480px) {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+`;
+
+/* ─── Link Virtual ─── */
+const VirtualLinkContainer = styled.div`
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+`;
+
+const VirtualLinkLabel = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #1e40af;
+  margin-bottom: 6px;
+
+  svg {
+    font-size: 0.85rem;
+  }
+`;
+
+const VirtualLinkAnchor = styled.a`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.85rem;
-  color: #4f46e5;
+  color: #2563eb;
   text-decoration: none;
   word-break: break-all;
+  transition: color 0.15s ease;
+
+  svg {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
 
   &:hover {
+    color: #1d4ed8;
     text-decoration: underline;
   }
 `;
 
-const LoadingState = styled.div`
-  padding: 48px;
-  text-align: center;
-  color: #6b7280;
-  font-size: 1rem;
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ESTADOS: LOADING & EMPTY
+═══════════════════════════════════════════════════════════════════════════════ */
+
+const shimmer = keyframes`
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const SkeletonCard = styled.div`
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+`;
+
+const SkeletonHeader = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+`;
+
+const SkeletonBadge = styled.div`
+  width: ${({ $width }) => $width || "100px"};
+  height: 28px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite;
+  border-radius: 8px;
+`;
+
+const SkeletonTitle = styled.div`
+  width: 60%;
+  height: 24px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite;
+  border-radius: 6px;
+  margin-bottom: 10px;
+`;
+
+const SkeletonText = styled.div`
+  width: 85%;
+  height: 16px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 16px;
+`;
+
+const SkeletonDetails = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 `;
 
 const EmptyState = styled.div`
@@ -1112,24 +1388,24 @@ const EmptyState = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 56px 24px;
   background: #f8fafc;
   border: 2px dashed #cbd5e1;
-  border-radius: 12px;
+  border-radius: 14px;
   text-align: center;
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 16px;
-  opacity: 0.7;
+  opacity: 0.8;
 `;
 
 const EmptyText = styled.div`
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 `;
 
 const EmptySubtext = styled.div`
