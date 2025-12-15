@@ -6,11 +6,10 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useMyInscriptions } from '../../features/participant/hooks/useMyInscriptions';
 import { inscriptionsApi } from '../../features/participant/api/inscriptionsApi';
 import ParticipantLayout from './ParticipantLayout';
-
-// 👇 Usa el mismo modal que ya tienes en Explorar eventos
+import ParticipantPaymentModal from './ParticipantPaymentModal';
+import { AlertSuccess, AlertError } from '@/shared/ui/components/Alert';
 import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
 
-/* ================== STYLES ================== */
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -113,13 +112,10 @@ const Banner = styled.div`
   align-items: flex-end;
   padding: 12px;
   overflow: hidden;
-
-  background: ${(p) => {
-    if (p.$img) {
-      return `linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.55)), url("${p.$img}")`;
-    }
-    return 'linear-gradient(135deg, rgba(79, 124, 255, 0.20), rgba(0, 0, 0, 0.02))';
-  }};
+  background: ${(p) =>
+    p.$img
+      ? `linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.55)), url("${p.$img}")`
+      : 'linear-gradient(135deg, rgba(79, 124, 255, 0.20), rgba(0, 0, 0, 0.02))'};
   background-size: cover;
   background-position: center;
 `;
@@ -214,7 +210,6 @@ const Empty = styled.div`
   }
 `;
 
-/* ================== HELPERS ================== */
 const statusInfo = (insc) => {
   const codigoRaw = String(insc?.estado?.codigo || '');
   const codigo = codigoRaw.toUpperCase();
@@ -247,7 +242,7 @@ const statusInfo = (insc) => {
   }
 
   return {
-    label: insc?.estado?.etiqueta || (codigoRaw || '—'),
+    label: insc?.estado?.etiqueta || (codigoRaw || '-'),
     bg: '#f9fafb',
     border: '#e5e7eb',
     color: '#111827',
@@ -262,7 +257,6 @@ const short = (v, n = 120) => {
   return `${s.slice(0, n)}…`;
 };
 
-/* ================== COMPONENT ================== */
 export const ParticipantInscriptionsPage = () => {
   const { user } = useAuth();
 
@@ -275,9 +269,10 @@ export const ParticipantInscriptionsPage = () => {
   const [q, setQ] = useState('');
   const [tab, setTab] = useState('TODAS');
   const [busyId, setBusyId] = useState(null);
-
-  // 👇 Modal de detalle (mismo flujo que Explorar)
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [paymentTarget, setPaymentTarget] = useState(null);
+  const [successModal, setSuccessModal] = useState({ open: false, message: '' });
+  const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -304,9 +299,10 @@ export const ParticipantInscriptionsPage = () => {
       setBusyId(id);
       await inscriptionsApi.eliminar(id);
       await reload();
-      alert('✅ Inscripción retirada.');
+      setSuccessModal({ open: true, message: 'Inscripción retirada.' });
     } catch (e) {
-      alert(`❌ No se pudo retirar: ${e?.message || 'Error'}`);
+      const msg = e?.message || 'No se pudo retirar la inscripción.';
+      setErrorModal({ open: true, message: msg });
     } finally {
       setBusyId(null);
     }
@@ -320,19 +316,40 @@ export const ParticipantInscriptionsPage = () => {
         window.open(cert.urlPdf, '_blank', 'noopener,noreferrer');
         return;
       }
-      alert('✅ Certificado encontrado, pero no hay urlPdf.');
+      setErrorModal({
+        open: true,
+        message: 'Certificado encontrado, pero no hay urlPdf configurado.',
+      });
+      // eslint-disable-next-line no-console
       console.log('CertificadoResponse:', cert);
     } catch (e) {
-      alert('Aún no hay certificado para esta inscripción (o no está disponible).');
+      setErrorModal({
+        open: true,
+        message: 'Aún no hay certificado para esta inscripción (o no está disponible).',
+      });
     } finally {
       setBusyId(null);
     }
   };
 
   const handlePagar = (insc) => {
-    // ✅ botón placeholder sin funcionalidad real (por ahora)
-    alert('💳 Próximamente podrás pagar desde aquí. (Botón sin funcionalidad)');
-    console.log('Pagar inscripción (placeholder):', insc);
+    setPaymentTarget(insc);
+  };
+
+  const handlePaymentSuccess = async (message) => {
+    setSuccessModal({
+      open: true,
+      message: message || 'Pago registrado correctamente.',
+    });
+    setPaymentTarget(null);
+    await reload();
+  };
+
+  const handlePaymentError = (message) => {
+    setErrorModal({
+      open: true,
+      message: message || 'No se pudo procesar el pago.',
+    });
   };
 
   return (
@@ -350,7 +367,7 @@ export const ParticipantInscriptionsPage = () => {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar…"
+                placeholder="Buscar por evento o estado"
               />
             </Search>
           </Toolbar>
@@ -405,7 +422,7 @@ export const ParticipantInscriptionsPage = () => {
 
                     <Row>
                       <b>Fecha</b>
-                      <span>{insc?.fechaInscripcion || '—'}</span>
+                      <span>{insc?.fechaInscripcion || '-'}</span>
                     </Row>
 
                     {insc?.actividad?.fechaInicio && insc?.actividad?.fechaFin && (
@@ -426,13 +443,12 @@ export const ParticipantInscriptionsPage = () => {
 
                     {!insc?.actividad && (
                       <Muted style={{ color: '#ef4444', fontWeight: 800 }}>
-                        No se pudo cargar el detalle de la actividad (título/imagen). Revisa el endpoint de obtener actividad o permisos del backend.
+                        No se pudo cargar el detalle de la actividad (título/imagen).
                       </Muted>
                     )}
                   </Body>
 
                   <Actions>
-                    {/* ✅ YA NO navega a una ruta (eso te mandaba al landing) */}
                     <Btn
                       onClick={() => setSelectedActivity(insc?.actividad || null)}
                       disabled={!insc?.actividad}
@@ -441,10 +457,9 @@ export const ParticipantInscriptionsPage = () => {
                       <FiExternalLink /> Ver evento
                     </Btn>
 
-                    {/* ✅ Botón Pagar (placeholder) */}
                     <Btn
                       onClick={() => handlePagar(insc)}
-                      disabled={!insc?.pendiente} // solo para pendientes (opcional)
+                      disabled={!insc?.pendiente}
                       title={!insc?.pendiente ? 'Disponible para inscripciones pendientes' : ''}
                     >
                       <FiCreditCard /> Pagar
@@ -473,14 +488,34 @@ export const ParticipantInscriptionsPage = () => {
         )}
       </Container>
 
-      {/* ✅ Modal de detalle para “Ver evento” */}
       <ActivityDetailModal
         activity={selectedActivity}
         isOpen={!!selectedActivity}
         onClose={() => setSelectedActivity(null)}
+      />
+
+      <ParticipantPaymentModal
+        open={!!paymentTarget}
+        inscription={paymentTarget}
+        onClose={() => setPaymentTarget(null)}
+        onSuccess={handlePaymentSuccess}
+        onError={handlePaymentError}
+      />
+
+      <AlertSuccess
+        open={successModal.open}
+        message={successModal.message}
+        onClose={() => setSuccessModal({ open: false, message: '' })}
+      />
+
+      <AlertError
+        open={errorModal.open}
+        message={errorModal.message}
+        onClose={() => setErrorModal({ open: false, message: '' })}
       />
     </ParticipantLayout>
   );
 };
 
 export default ParticipantInscriptionsPage;
+
