@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { FiEye, FiEyeOff, FiUserPlus } from 'react-icons/fi';
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
-import { PublicLayout } from '../../shared/ui/layouts';
-import { LoginModal } from '../../features/auth';
-import EmailVerificationModal from '../../features/auth/ui/EmailVerificationModal';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { FiEye, FiEyeOff, FiUserPlus } from "react-icons/fi";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { PublicLayout } from "../../shared/ui/layouts";
+import { LoginModal } from "../../features/auth";
+import EmailVerificationModal from "../../features/auth/ui/EmailVerificationModal";
+import { useNavigate } from "react-router-dom";
 import { AlertError } from "@/shared/ui/components/Alert";
+import LoadingModal from "@/shared/ui/components/Loader/LoadingModal";
 import { useAuth } from "../../features/auth/hooks/useAuth";
-
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,35 +19,34 @@ const RegisterPage = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredUserData, setRegisteredUserData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
-    const { login } = useAuth();
-   const [errorModal, setErrorModal] = useState({
-  open: false,
-  message: "",
-});
+  const { login } = useAuth();
+  const [errorModal, setErrorModal] = useState({
+    open: false,
+    message: "",
+  });
 
   const paisesLatam = [
-    { label: '🇵🇪 Perú (+51)', value: '+51' },
-    { label: '🇲🇽 México (+52)', value: '+52' },
-    { label: '🇨🇴 Colombia (+57)', value: '+57' },
-    { label: '🇨🇱 Chile (+56)', value: '+56' },
-    { label: '🇦🇷 Argentina (+54)', value: '+54' },
-    { label: '🇧🇴 Bolivia (+591)', value: '+591' },
-    { label: '🇪🇨 Ecuador (+593)', value: '+593' },
-    { label: '🇵🇾 Paraguay (+595)', value: '+595' },
-    { label: '🇺🇾 Uruguay (+598)', value: '+598' },
+    { label: "🇵🇪 Perú (+51)", value: "+51" },
+    { label: "🇲🇽 México (+52)", value: "+52" },
+    { label: "🇨🇴 Colombia (+57)", value: "+57" },
+    { label: "🇨🇱 Chile (+56)", value: "+56" },
+    { label: "🇦🇷 Argentina (+54)", value: "+54" },
+    { label: "🇧🇴 Bolivia (+591)", value: "+591" },
+    { label: "🇪🇨 Ecuador (+593)", value: "+593" },
+    { label: "🇵🇾 Paraguay (+595)", value: "+595" },
+    { label: "🇺🇾 Uruguay (+598)", value: "+598" },
   ];
 
-
   const [formData, setFormData] = useState({
-    nombres: '',
-    apellidos: '',
-    dni: '',
-    correo: '',
-    telefono: '',
-    password: '',
-    confirmPassword: '',
+    nombres: "",
+    apellidos: "",
+    dni: "",
+    correo: "",
+    telefono: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleInputChange = (e) => {
@@ -55,141 +54,149 @@ const RegisterPage = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError('');
+    setError("");
   };
 
-
   // ✅ Cuando la verificación es exitosa
- const handleVerificationSuccess = async () => {
-  console.log('✅ Verificación exitosa, registrando usuario...');
-  setLoading(true);
+  const handleVerificationSuccess = async () => {
+    console.log("✅ Verificación exitosa, registrando usuario...");
+    setLoading(true);
 
-  try {
-    const registrationData = {
-      nombres: formData.nombres.trim(),
-      apellidos: formData.apellidos.trim(),
-      correo: formData.correo.trim().toLowerCase(),
-      password: formData.password,
-      dni: formData.dni,
-      telefono: formData.telefono,
-      extensionTelefonica: formData.extensionTelefonica,
-    };
+    try {
+      const registrationData = {
+        nombres: formData.nombres.trim(),
+        apellidos: formData.apellidos.trim(),
+        correo: formData.correo.trim().toLowerCase(),
+        password: formData.password,
+        dni: formData.dni,
+        telefono: formData.telefono,
+        extensionTelefonica: formData.extensionTelefonica,
+      };
 
-    console.log('📤 Registrando usuario:', registrationData);
+      console.log("📤 Registrando usuario:", registrationData);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/usuarios/participante/registrar`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(registrationData),
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/usuarios/participante/registrar`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(registrationData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          throw new Error(
+            "⚠️ El correo ya está registrado. Intenta iniciar sesión."
+          );
+        } else {
+          throw new Error(data.message || "Error al registrar");
+        }
       }
-    );
 
-    const data = await response.json();
+      console.log("🔥 Usuario registrado y verificado:", data);
 
-    if (!response.ok) {
-      if (response.status === 409) {
-        throw new Error('⚠️ El correo ya está registrado. Intenta iniciar sesión.');
-      } else {
-        throw new Error(data.message || 'Error al registrar');
-      }
+      // 🟩 Hacer login inmediato y redirigir
+      await login({
+        email: formData.correo.trim().toLowerCase(),
+        password: formData.password,
+        rememberMe: false,
+      });
+
+      // esperar a que useAuth actualice el estado
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      navigate("/participante/dashboard");
+    } catch (error) {
+      console.error("❌ Error al registrar/verificar:", error);
+      setErrorModal({
+        open: true,
+        message: error.message || "Ocurrió un error inesperado",
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    console.log('🔥 Usuario registrado y verificado:', data);
-
-    // 🟩 Hacer login inmediato y redirigir
-    await login({
-  email: formData.correo.trim().toLowerCase(),
-  password: formData.password,
-  rememberMe: false
-});
-
-// esperar a que useAuth actualice el estado
-await new Promise(resolve => setTimeout(resolve, 300));
-
-navigate('/participante/dashboard');
-
-
-  } catch (error) {
-    console.error('❌ Error al registrar/verificar:', error);
-    setErrorModal({
-      open: true,
-      message: error.message || 'Ocurrió un error inesperado',
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-  
   // ✅ Cuando el usuario cierra el modal sin verificar
   const handleVerificationSkip = () => {
     setShowVerificationModal(false);
     setErrorModal({
       open: true,
-      message: "Debe verificar su correo para completar el registro."
-
+      message: "Debe verificar su correo para completar el registro.",
     });
   };
 
   const validateForm = () => {
-  const { nombres, apellidos, dni, correo, telefono, password, confirmPassword, extensionTelefonica } = formData;
+    const {
+      nombres,
+      apellidos,
+      dni,
+      correo,
+      telefono,
+      password,
+      confirmPassword,
+      extensionTelefonica,
+    } = formData;
 
-  // Nombres
-  if (!nombres.trim()) return "El campo Nombres es obligatorio.";
-  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombres)) return "Los nombres solo deben contener letras.";
+    // Nombres
+    if (!nombres.trim()) return "El campo Nombres es obligatorio.";
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombres))
+      return "Los nombres solo deben contener letras.";
 
-  // Apellidos
-  if (!apellidos.trim()) return "El campo Apellidos es obligatorio.";
-  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidos)) return "Los apellidos solo deben contener letras.";
+    // Apellidos
+    if (!apellidos.trim()) return "El campo Apellidos es obligatorio.";
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidos))
+      return "Los apellidos solo deben contener letras.";
 
-  // DNI
-  if (!dni.trim()) return "El DNI es obligatorio.";
-  if (!/^\d{8}$/.test(dni)) return "El DNI debe tener exactamente 8 dígitos.";
+    // DNI
+    if (!dni.trim()) return "El DNI es obligatorio.";
+    if (!/^\d{8}$/.test(dni)) return "El DNI debe tener exactamente 8 dígitos.";
 
-  // Correo
-  if (!correo.trim()) return "El correo electrónico es obligatorio.";
-  if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(correo)) return "Correo electrónico inválido.";
+    // Correo
+    if (!correo.trim()) return "El correo electrónico es obligatorio.";
+    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(correo))
+      return "Correo electrónico inválido.";
 
-  // Código telefónico
-  if (!extensionTelefonica) return "Debe seleccionar un código telefónico.";
+    // Código telefónico
+    if (!extensionTelefonica) return "Debe seleccionar un código telefónico.";
 
-  // Teléfono
-  if (!telefono.trim()) return "El teléfono es obligatorio.";
-  if (!/^\d{9}$/.test(telefono)) return "El número telefónico debe tener 9 dígitos.";
-  if (!telefono.startsWith("9")) return "El teléfono peruano debe empezar con 9.";
+    // Teléfono
+    if (!telefono.trim()) return "El teléfono es obligatorio.";
+    if (!/^\d{9}$/.test(telefono))
+      return "El número telefónico debe tener 9 dígitos.";
+    if (!telefono.startsWith("9"))
+      return "El teléfono peruano debe empezar con 9.";
 
-  // Contraseña
-  if (!password) return "La contraseña es obligatoria.";
-  if (password.length < 6) return "La contraseña debe tener mínimo 6 caracteres.";
+    // Contraseña
+    if (!password) return "La contraseña es obligatoria.";
+    if (password.length < 6)
+      return "La contraseña debe tener mínimo 6 caracteres.";
 
-  // Confirmar contraseña
-  if (!confirmPassword) return "Debe confirmar su contraseña.";
-  if (password !== confirmPassword) return "Las contraseñas no coinciden.";
+    // Confirmar contraseña
+    if (!confirmPassword) return "Debe confirmar su contraseña.";
+    if (password !== confirmPassword) return "Las contraseñas no coinciden.";
 
-  return null; // sin errores
-};
-
+    return null; // sin errores
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validaciones
-     const validationError = validateForm();
-  if (validationError) {
-    setErrorModal({
-      open: true,
-      message: validationError,
-    });
-    return;
-  }
-    
+    const validationError = validateForm();
+    if (validationError) {
+      setErrorModal({
+        open: true,
+        message: validationError,
+      });
+      return;
+    }
 
     // Guardar datos y abrir modal de verificación
     setRegisteredUserData({
@@ -212,9 +219,11 @@ navigate('/participante/dashboard');
               <IconWrapper>
                 <FiUserPlus size={32} />
               </IconWrapper>
-              <Title>Regístrate en <Highlight>SIGEA</Highlight></Title>
+              <Title>
+                Bienvenido a <Highlight>SIGEA</Highlight>
+              </Title>
               <Subtitle>
-                Crea tu cuenta para gestionar eventos académicos
+                Descubre talleres, cursos y eventos diseñados para acompañar tu aprendizaje
               </Subtitle>
             </Header>
 
@@ -261,8 +270,8 @@ navigate('/participante/dashboard');
                     maxLength="8"
                     value={formData.dni}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      setFormData({ ...formData, dni: value }); 
+                      const value = e.target.value.replace(/\D/g, "");
+                      setFormData({ ...formData, dni: value });
                     }}
                   />
                 </FormGroup>
@@ -291,7 +300,10 @@ navigate('/participante/dashboard');
                   <CountrySelect
                     value={formData.extensionTelefonica}
                     onChange={(e) =>
-                      setFormData({ ...formData, extensionTelefonica: e.target.value })
+                      setFormData({
+                        ...formData,
+                        extensionTelefonica: e.target.value,
+                      })
                     }
                   >
                     <option value="">Código</option>
@@ -325,7 +337,7 @@ navigate('/participante/dashboard');
                   </Label>
                   <PasswordWrapper>
                     <Input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       placeholder="••••••••"
                       value={formData.password}
@@ -335,7 +347,11 @@ navigate('/participante/dashboard');
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                      {showPassword ? (
+                        <FiEyeOff size={20} />
+                      ) : (
+                        <FiEye size={20} />
+                      )}
                     </PasswordToggle>
                   </PasswordWrapper>
                 </FormGroup>
@@ -346,7 +362,7 @@ navigate('/participante/dashboard');
                   </Label>
                   <PasswordWrapper>
                     <Input
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       name="confirmPassword"
                       placeholder="••••••••"
                       value={formData.confirmPassword}
@@ -354,9 +370,15 @@ navigate('/participante/dashboard');
                     />
                     <PasswordToggle
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                     >
-                      {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                      {showConfirmPassword ? (
+                        <FiEyeOff size={20} />
+                      ) : (
+                        <FiEye size={20} />
+                      )}
                     </PasswordToggle>
                   </PasswordWrapper>
                 </FormGroup>
@@ -368,11 +390,11 @@ navigate('/participante/dashboard');
                 whileHover={{ scale: loading ? 1 : 1.02 }}
                 whileTap={{ scale: loading ? 1 : 0.98 }}
               >
-                {loading ? 'Procesando...' : 'Registrarse'}
+                Registrarse
               </SubmitButton>
 
               <LoginLink>
-                ¿Ya tienes cuenta?{' '}
+                ¿Ya tienes cuenta?{" "}
                 <Link onClick={() => setIsLoginModalOpen(true)}>
                   Inicia sesión aquí
                 </Link>
@@ -401,6 +423,12 @@ navigate('/participante/dashboard');
         message={errorModal.message}
         onClose={() => setErrorModal({ open: false, message: "" })}
       />
+
+      <LoadingModal
+        isOpen={loading}
+        message="Registrando cuenta..."
+        submessage="Esto puede tomar unos segundos"
+      />
     </PublicLayout>
   );
 };
@@ -413,14 +441,14 @@ const PageContainer = styled.div`
   justify-content: center;
   padding: 80px 20px 60px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  
-  @media (max-width: 768px) { 
-    padding: 60px 20px 40px; 
+
+  @media (max-width: 768px) {
+    padding: 60px 20px 40px;
   }
 `;
 
 const ContentWrapper = styled.div`
-  width: 100%; 
+  width: 100%;
   max-width: 680px;
 `;
 
@@ -429,13 +457,13 @@ const FormCard = styled(motion.div)`
   border-radius: 24px;
   padding: 48px 40px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-  
-  @media (max-width: 768px) { 
+
+  @media (max-width: 768px) {
     padding: 36px 28px;
     border-radius: 20px;
   }
-  
-  @media (max-width: 580px) { 
+
+  @media (max-width: 580px) {
     padding: 32px 24px;
   }
 `;
@@ -451,7 +479,7 @@ const IconWrapper = styled.div`
   justify-content: center;
   width: 72px;
   height: 72px;
-  background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #3b63e0 100%);
   border-radius: 20px;
   margin-bottom: 20px;
   color: white;
@@ -464,15 +492,15 @@ const Title = styled.h2`
   color: #1a1a1a;
   margin-bottom: 12px;
   letter-spacing: -0.5px;
-  
-  @media (max-width: 580px) { 
+
+  @media (max-width: 580px) {
     font-size: 1.625rem;
   }
 `;
 
 const Highlight = styled.span`
-  color: #4F7CFF;
-  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  color: #4f7cff;
+  background: linear-gradient(135deg, #4f7cff 0%, #6b92ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -501,7 +529,7 @@ const FormRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  
+
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -539,19 +567,19 @@ const Input = styled.input`
   transition: all 0.2s ease;
   box-sizing: border-box;
   font-family: inherit;
-  
+
   &::placeholder {
     color: #94a3b8;
   }
-  
+
   &:hover {
     border-color: #cbd5e1;
     background: #ffffff;
   }
-  
+
   &:focus {
     outline: none;
-    border-color: #4F7CFF;
+    border-color: #4f7cff;
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
   }
@@ -574,15 +602,15 @@ const CountrySelect = styled.select`
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
-  
+
   &:hover {
     border-color: #cbd5e1;
     background: #ffffff;
   }
-  
+
   &:focus {
     outline: none;
-    border-color: #4F7CFF;
+    border-color: #4f7cff;
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
   }
@@ -615,19 +643,19 @@ const PasswordToggle = styled.button`
   padding: 6px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  
+
   &:hover {
-    color: #4F7CFF;
+    color: #4f7cff;
     background: #f1f5f9;
   }
-  
+
   &:active {
     transform: translateY(-50%) scale(0.95);
   }
 `;
 
 const SubmitButton = styled(motion.button)`
-  background: linear-gradient(135deg, #4F7CFF 0%, #3b63e0 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #3b63e0 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -638,18 +666,18 @@ const SubmitButton = styled(motion.button)`
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(79, 124, 255, 0.2);
   margin-top: 8px;
-  
+
   &:disabled {
     background: #94a3b8;
     cursor: not-allowed;
     box-shadow: none;
   }
-  
+
   &:hover:not(:disabled) {
     box-shadow: 0 6px 20px rgba(79, 124, 255, 0.3);
     transform: translateY(-1px);
   }
-  
+
   &:active:not(:disabled) {
     transform: translateY(0);
   }
@@ -664,11 +692,11 @@ const LoginLink = styled.p`
 `;
 
 const Link = styled.span`
-  color: #4F7CFF;
+  color: #4f7cff;
   cursor: pointer;
   font-weight: 600;
   transition: color 0.2s ease;
-  
+
   &:hover {
     color: #3b63e0;
     text-decoration: underline;

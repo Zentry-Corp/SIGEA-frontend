@@ -1,0 +1,40 @@
+
+  const handlePagar = async (insc) => {
+    try {
+      setBusyId(insc.id);
+
+      const pagos = await paymentsApi.listarPagos();
+      const pago = (pagos || []).find(
+        (p) => String(p.inscripcionId || '').trim() === String(insc.id || '').trim(),
+      );
+
+      if (!pago || (!pago.initPoint && !pago.sandboxInitPoint)) {
+        setErrorModal({
+          open: true,
+          message:
+            'Aún no hay un enlace de pago configurado para esta inscripción. Contacta al organizador.',
+        });
+        return;
+      }
+
+      const url = pago.initPoint || pago.sandboxInitPoint;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        'No se pudo obtener el enlace de pago. Inténtalo nuevamente.';
+      setErrorModal({ open: true, message: msg });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <ParticipantLayout>
+      <Container>
+        <Header>
+          <div>
+            <Title>Mis inscripciones</Title>
+            <Subtitle>Consulta el estado y progreso de tus eventos</Subtitle>
+          </div>

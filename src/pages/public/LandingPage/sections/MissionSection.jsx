@@ -1,29 +1,29 @@
-import React from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { FiUsers, FiDollarSign, FiAward } from 'react-icons/fi';
+import React from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { FiUsers, FiDollarSign, FiAward } from "react-icons/fi";
 
 const MissionSection = () => {
   const features = [
     {
       icon: <FiUsers size={32} />,
-      title: 'Inscripción online',
-      description: 'Acceso 24/7 desde cualquier dispositivo'
+      title: "Inscripción online",
+      description: "Acceso 24/7 desde cualquier dispositivo",
     },
     {
       icon: <FiDollarSign size={32} />,
-      title: 'Pagos integrados',
-      description: 'Múltiples métodos seguros y confiables'
+      title: "Pagos integrados",
+      description: "Múltiples métodos seguros y confiables",
     },
     {
       icon: <FiAward size={32} />,
-      title: 'Certificados con QR',
-      description: 'Verificación inmediata y automática'
-    }
+      title: "Certificados con QR",
+      description: "Verificación inmediata y automática",
+    },
   ];
 
   return (
-    <SectionContainer>
+    <SectionContainer id="nosotros">
       <ContentWrapper>
         <SectionHeader
           initial={{ opacity: 0, y: 20 }}
@@ -31,11 +31,14 @@ const MissionSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <SectionTitle>Nuestra <Highlight>misión</Highlight></SectionTitle>
+          <SectionTitle>
+            Nuestra <Highlight>misión</Highlight>
+          </SectionTitle>
           <SectionDescription>
-            Transformar la experiencia académica de los estudiantes y profesionales de la UNAS, 
-            simplificando la inscripción a eventos educativos y proporcionando certificados digitales 
-            confiables y verificables.
+            Transformar la experiencia académica de los estudiantes y
+            profesionales de la UNAS, simplificando la inscripción a eventos
+            educativos y proporcionando certificados digitales confiables y
+            verificables.
           </SectionDescription>
         </SectionHeader>
 
@@ -61,30 +64,39 @@ const MissionSection = () => {
 };
 
 const SectionContainer = styled.section`
+  scroll-margin-top: 100px; /* altura del header */
   padding: 100px 20px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -30%;
     left: -10%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(79, 124, 255, 0.04) 0%, transparent 70%);
+    background: radial-gradient(
+      circle,
+      rgba(79, 124, 255, 0.04) 0%,
+      transparent 70%
+    );
     border-radius: 50%;
   }
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -40%;
     right: -15%;
     width: 700px;
     height: 700px;
-    background: radial-gradient(circle, rgba(79, 124, 255, 0.03) 0%, transparent 70%);
+    background: radial-gradient(
+      circle,
+      rgba(79, 124, 255, 0.03) 0%,
+      transparent 70%
+    );
     border-radius: 50%;
   }
 
@@ -123,8 +135,8 @@ const SectionTitle = styled.h2`
 `;
 
 const Highlight = styled.span`
-  color: #4F7CFF;
-  background: linear-gradient(135deg, #4F7CFF 0%, #6B92FF 100%);
+  color: #4f7cff;
+  background: linear-gradient(135deg, #4f7cff 0%, #6b92ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -176,7 +188,7 @@ const FeatureCard = styled(motion.div)`
 `;
 
 const IconWrapper = styled.div`
-  color: #4F7CFF;
+  color: #4f7cff;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,18 +1,23 @@
 // src/pages/organizer/ActividadesPage.jsx
 
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { FiPlus } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { FiPlus } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
-import OrganizerSidebar from './OrganizerSidebar';
-import { useActivities } from '../../features/activities/hooks/useActivities';
-import { useDeleteActivity } from '../../features/activities/hooks/useDeleteActivity';
-import ActivityCard from '../../features/activities/ui/ActivityCard';
-import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
-import ActivityFilters from '../../features/activities/ui/ActivityFilters';
-import { AlertError, AlertSuccess, AlertWarning } from "@/shared/ui/components/Alert";
+import OrganizerSidebar from "./OrganizerSidebar";
+import { useActivities } from "../../features/activities/hooks/useActivities";
+import { useDeleteActivity } from "../../features/activities/hooks/useDeleteActivity";
+import ActivityCard from "../../features/activities/ui/ActivityCard";
+import ActivityDetailModal from "../../features/activities/ui/ActivityDetailModal";
+import ActivityFilters from "../../features/activities/ui/ActivityFilters";
+import {
+  AlertError,
+  AlertSuccess,
+  AlertWarning,
+  AlertConfirmDelete,
+} from "@/shared/ui/components/Alert";
 
 const ActividadesPage = () => {
   const navigate = useNavigate();
@@ -26,8 +31,13 @@ const ActividadesPage = () => {
     filters,
     updateFilter,
     clearFilters,
+    refetch,
   } = useActivities();
 
+  const [modalDelete, setModalDelete] = useState({
+    open: false,
+    actividad: null,
+  });
 
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,17 +52,19 @@ const ActividadesPage = () => {
     setTimeout(() => setSelectedActivity(null), 200);
   };
 
-
   const handleAddSession = (activity) => {
     navigate(`/organizador/actividades/${activity.id}/sesiones`);
   };
 
-  // Estados para modales de eliminación
-  const [deleteModal, setDeleteModal] = useState({
+  // Agregar este handler después de handleAddSession
+  const handleEdit = (activity) => {
+    navigate(`/organizador/actividades/editar/${activity.id}`);
+  };
+
+  const [successModal, setSuccessModal] = useState({
     open: false,
-    activity: null
+    message: "",
   });
-  const [successModal, setSuccessModal] = useState({ open: false, message: "" });
   const [errorModal, setErrorModal] = useState({ open: false, message: "" });
 
   // Hook para eliminar actividades
@@ -60,34 +72,40 @@ const ActividadesPage = () => {
 
   // Handler para iniciar eliminación (muestra modal de confirmación)
   const handleDelete = (activity) => {
-    setDeleteModal({
+    setModalDelete({
       open: true,
-      activity: activity
+      actividad: activity,
     });
   };
 
   // Handler para confirmar eliminación
+  // Handler para confirmar eliminación
   const confirmDelete = async () => {
-    if (!deleteModal.activity) return;
+    if (!modalDelete.actividad) return;
 
     try {
-      await deleteActivity(deleteModal.activity.id);
+      await deleteActivity(modalDelete.actividad.id);
 
-      setDeleteModal({ open: false, activity: null });
+      // 🔁 Refrescar lista SIN recargar la página
+      await refetch();
+
+      // Cerrar modal de confirmación
+      setModalDelete({ open: false, actividad: null });
+
+      // Mostrar éxito
       setSuccessModal({
         open: true,
-        message: `🗑️ La actividad "${deleteModal.activity.titulo}" ha sido eliminada`
+        message: `La actividad "${modalDelete.actividad.titulo}" ha sido eliminada`,
       });
-
-      // Refrescar lista de actividades
-      window.location.reload(); // Temporal - idealmente usar un refetch del hook
-
     } catch (error) {
-      console.error('❌ Error al eliminar actividad:', error);
-      setDeleteModal({ open: false, activity: null });
+      console.error("❌ Error al eliminar actividad:", error);
+
+      setModalDelete({ open: false, actividad: null });
+
       setErrorModal({
         open: true,
-        message: error.response?.data?.message || 'Error al eliminar la actividad'
+        message:
+          error.response?.data?.message || "Error al eliminar la actividad",
       });
     }
   };
@@ -102,12 +120,10 @@ const ActividadesPage = () => {
           <Header>
             <HeaderContent>
               <Title>Gestión de Actividades</Title>
-              <Subtitle>Crea y gestiona tus actividades académicas</Subtitle>
-              <Breadcrumb>Inicio / <strong>Gestión de actividades</strong></Breadcrumb>
             </HeaderContent>
 
             <NewActivityButton
-              onClick={() => navigate('/organizador/actividades/crear')}
+              onClick={() => navigate("/organizador/actividades/crear")}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -116,44 +132,37 @@ const ActividadesPage = () => {
             </NewActivityButton>
           </Header>
 
-          {/* FILTROS */}
-          {!loading && !error && (
-            <ActivityFilters
-              filters={filters}
-              tipos={tipos}
-              estados={estados}
-              onFilterChange={updateFilter}
-              onClearFilters={clearFilters}
-              resultCount={activities.length}
-            />
-          )}
-
-          {/* LOADING STATE */}
-          {loading && (
-            <LoadingContainer>
-              <Spinner />
-              <LoadingText>Cargando actividades...</LoadingText>
-            </LoadingContainer>
-          )}
-
-          {/* ERROR STATE */}
-          {error && (
-            <ErrorContainer>
-              <ErrorIcon>⚠️</ErrorIcon>
-              <ErrorTitle>Error al cargar actividades</ErrorTitle>
-              <ErrorMessage>{error}</ErrorMessage>
-            </ErrorContainer>
-          )}
-
           {/* ACTIVIDADES GRID */}
           {!loading && !error && (
             <>
-              <ResultsHeader>
-                <ResultsTitle>Mis actividades</ResultsTitle>
-                <ResultsCount>
-                  Mostrando <strong>{activities.length}</strong> {activities.length === 1 ? 'actividad' : 'actividades'}
-                </ResultsCount>
-              </ResultsHeader>
+              {/* FILTROS */}
+              {!loading && !error && (
+                <ActivityFilters
+                  filters={filters}
+                  tipos={tipos}
+                  estados={estados}
+                  onFilterChange={updateFilter}
+                  onClearFilters={clearFilters}
+                  resultCount={activities.length}
+                />
+              )}
+
+              {/* LOADING STATE */}
+              {loading && (
+                <LoadingContainer>
+                  <Spinner />
+                  <LoadingText>Cargando actividades...</LoadingText>
+                </LoadingContainer>
+              )}
+
+              {/* ERROR STATE */}
+              {error && (
+                <ErrorContainer>
+                  <ErrorIcon>⚠️</ErrorIcon>
+                  <ErrorTitle>Error al cargar actividades</ErrorTitle>
+                  <ErrorMessage>{error}</ErrorMessage>
+                </ErrorContainer>
+              )}
 
               {activities.length > 0 ? (
                 <ActivitiesGrid>
@@ -168,6 +177,7 @@ const ActividadesPage = () => {
                         activity={activity}
                         onViewDetail={handleViewDetail}
                         onAddSession={handleAddSession}
+                        onEdit={handleEdit}
                         onDelete={handleDelete}
                       />
                     </motion.div>
@@ -178,16 +188,24 @@ const ActividadesPage = () => {
                   <EmptyIcon>📋</EmptyIcon>
                   <EmptyTitle>No hay actividades</EmptyTitle>
                   <EmptyText>
-                    {filters.busqueda || filters.tipo !== 'todos' || filters.estado !== 'todos'
-                      ? 'No se encontraron actividades con los filtros aplicados'
-                      : 'Comienza creando tu primera actividad'}
+                    {filters.busqueda ||
+                    filters.tipo !== "todos" ||
+                    filters.estado !== "todos"
+                      ? "No se encontraron actividades con los filtros aplicados"
+                      : "Comienza creando tu primera actividad"}
                   </EmptyText>
-                  {!filters.busqueda && filters.tipo === 'todos' && filters.estado === 'todos' && (
-                    <CreateButtonSecondary onClick={() => navigate('/organizador/actividades/crear')}>
-                      <FiPlus />
-                      Crear primera actividad
-                    </CreateButtonSecondary>
-                  )}
+                  {!filters.busqueda &&
+                    filters.tipo === "todos" &&
+                    filters.estado === "todos" && (
+                      <CreateButtonSecondary
+                        onClick={() =>
+                          navigate("/organizador/actividades/crear")
+                        }
+                      >
+                        <FiPlus />
+                        Crear primera actividad
+                      </CreateButtonSecondary>
+                    )}
                 </EmptyState>
               )}
             </>
@@ -203,12 +221,11 @@ const ActividadesPage = () => {
       />
 
       {/* MODALES DE ELIMINACIÓN */}
-      <AlertWarning
-        open={deleteModal.open}
-        message={`¿Estás seguro de eliminar la actividad "${deleteModal.activity?.titulo}"? Esta acción no se puede deshacer.`}
-        onCancel={() => setDeleteModal({ open: false, activity: null })}
+      <AlertConfirmDelete
+        open={modalDelete.open}
+        message={`¿Estás seguro de eliminar la actividad "${modalDelete.actividad?.titulo}"? Esta acción no se puede deshacer.`}
+        onCancel={() => setModalDelete({ open: false, actividad: null })}
         onConfirm={confirmDelete}
-        confirmText="Sí, eliminar"
       />
 
       <AlertSuccess
@@ -235,7 +252,7 @@ export default ActividadesPage;
 const PageContainer = styled.div`
   margin-left: 260px;
   min-height: 100vh;
-  padding: 40px;
+  padding: 28px 32px;
   background: #f8fafc;
 
   @media (max-width: 968px) {
@@ -255,7 +272,7 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   gap: 20px;
 
   @media (max-width: 968px) {
@@ -402,15 +419,16 @@ const ResultsCount = styled.p`
   margin: 0;
 
   strong {
-    color: #4F7CFF;
+    color: #4f7cff;
     font-weight: 700;
   }
 `;
 
 const ActivitiesGrid = styled.div`
+  max-width: 1100px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 24px;
+  gap: 20px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
