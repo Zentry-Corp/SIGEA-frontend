@@ -9,6 +9,7 @@ import { paymentsApi } from '../../features/participant/api/paymentsApi';
 import ParticipantLayout from './ParticipantLayout';
 import { AlertSuccess, AlertError } from '@/shared/ui/components/Alert';
 import ActivityDetailModal from '../../features/activities/ui/ActivityDetailModal';
+import { config as appConfig } from '@/shared/config/env';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -334,6 +335,17 @@ export const ParticipantInscriptionsPage = () => {
   const handlePagar = async (insc) => {
     try {
       setBusyId(insc.id);
+
+       // 0) Si hay un link fijo en el .env, lo usamos directamente
+      if (appConfig.PAYMENT_URL) {
+        // eslint-disable-next-line no-console
+        console.log(
+          '[ParticipantInscriptionsPage] Usando PAYMENT_URL desde .env:',
+          appConfig.PAYMENT_URL,
+        );
+        window.open(appConfig.PAYMENT_URL, '_blank', 'noopener,noreferrer');
+        return;
+      }
 
       const pagos = await paymentsApi.listarPagos();
       const pago = (pagos || []).find(
